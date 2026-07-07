@@ -1,69 +1,105 @@
 .layout-container {
   height: 100vh;
+  background: #f3f8fb;
 }
 
 .floating-nav {
   position: sticky;
-  top: 16px;
-  margin: 16px 24px 0 24px;
-  padding: 8px 16px;
-  background: #ffffff;
-  border-radius: 999px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  top: 0;
+  min-height: 48px;
+  padding: 0 18px;
+  background: #f28c28;
+  border-bottom: 3px solid #20a8d8;
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 12px;
   z-index: 10;
 }
 
 .logo-text {
-  font-weight: 600;
-  font-size: 1rem;
-  margin-right: auto;
+  min-width: 180px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
   white-space: nowrap;
 }
 
 .nav-links-desktop {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-radius: 999px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 3px;
   text-decoration: none;
-  color: inherit;
-  font-size: 0.85rem;
+  color: #e9f6fb;
+  font-size: 0.84rem;
   white-space: nowrap;
 }
 
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
 .nav-link.activo {
-  background: rgba(0, 0, 0, 0.06);
+  background: #0f5f78;
+  color: #ffffff;
+}
+
+.user-button {
+  margin-left: auto;
+  border-radius: 3px;
+  color: #ffffff;
+}
+
+.user-button:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .btn-mobile-menu {
   display: none;
+  color: #ffffff;
+  margin-left: auto;
 }
 
 .mobile-sidebar {
-  width: 240px;
+  width: 260px;
+  background: #f28c28;
+  color: #ffffff;
+}
+
+.mobile-sidebar a,
+.mobile-sidebar button {
+  color: #e9f6fb;
 }
 
 .mobile-sidebar .activo {
-  background: rgba(0, 0, 0, 0.06);
+  background: #0f5f78;
+  color: #ffffff;
 }
 
 .content-area {
+  min-height: calc(100vh - 48px);
   padding: 24px;
+  background: #f3f8fb;
 }
 
-@media (max-width: 768px) {
-  .nav-links-desktop {
+.login-content {
+  padding: 0;
+}
+
+@media (max-width: 1020px) {
+  .nav-links-desktop,
+  .user-button {
     display: none;
   }
+
   .btn-mobile-menu {
     display: inline-flex;
   }

@@ -1,0 +1,172 @@
+<section class="admin-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Modulo administrador</p>
+      <h1>Usuarios y acceso</h1>
+    </div>
+    <div class="summary-strip">
+      <div>
+        <span>{{ users().length }}</span>
+        <small>Usuarios</small>
+      </div>
+      <div>
+        <span>{{ activeUsersCount() }}</span>
+        <small>Activos</small>
+      </div>
+    </div>
+  </header>
+
+  <div class="admin-grid">
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>{{ selectedUser() ? 'Editar usuario' : 'Crear usuario' }}</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="submit()" class="user-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <mat-icon matPrefix>person</mat-icon>
+            <input matInput formControlName="nombre" />
+            @if (form.controls.nombre.hasError('required')) {
+              <mat-error>El nombre es obligatorio</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Correo</mat-label>
+            <mat-icon matPrefix>mail</mat-icon>
+            <input matInput type="email" formControlName="correo" />
+            @if (form.controls.correo.hasError('required')) {
+              <mat-error>El correo es obligatorio</mat-error>
+            }
+            @if (form.controls.correo.hasError('email')) {
+              <mat-error>Ingresa un correo valido</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ selectedUser() ? 'Nuevo password opcional' : 'Password' }}</mat-label>
+            <mat-icon matPrefix>lock</mat-icon>
+            <input matInput type="password" formControlName="password" />
+            @if (form.controls.password.hasError('minlength')) {
+              <mat-error>Debe tener al menos 6 caracteres</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Rol</mat-label>
+            <mat-icon matPrefix>admin_panel_settings</mat-icon>
+            <mat-select formControlName="id_rol">
+              <mat-option [value]="0">Seleccionar rol</mat-option>
+              @for (role of roles(); track role.id_rol) {
+                <mat-option [value]="role.id_rol">{{ role.nombre }}</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.id_rol.hasError('min')) {
+              <mat-error>Selecciona un rol</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-slide-toggle formControlName="activo">Usuario activo</mat-slide-toggle>
+
+          @if (feedback()) {
+            <div class="feedback success">
+              <mat-icon>check_circle</mat-icon>
+              <span>{{ feedback() }}</span>
+            </div>
+          }
+
+          @if (errorMessage()) {
+            <div class="feedback error">
+              <mat-icon>error</mat-icon>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          }
+
+          <div class="form-actions">
+            <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <mat-spinner diameter="18"></mat-spinner>
+              } @else {
+                <mat-icon>{{ selectedUser() ? 'save' : 'person_add' }}</mat-icon>
+              }
+              <span>{{ selectedUser() ? 'Guardar' : 'Crear' }}</span>
+            </button>
+
+            @if (selectedUser()) {
+              <button mat-stroked-button type="button" (click)="cancelEdit()">Cancelar</button>
+            }
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="table-card">
+      <mat-card-header>
+        <mat-card-title>Usuarios registrados</mat-card-title>
+        <mat-card-subtitle>Administracion de accesos del sistema.</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        @if (isLoading()) {
+          <div class="loading-state">
+            <mat-spinner diameter="36"></mat-spinner>
+            <span>Cargando usuarios</span>
+          </div>
+        } @else {
+          <table mat-table [dataSource]="users()" class="users-table">
+            <ng-container matColumnDef="usuario">
+              <th mat-header-cell *matHeaderCellDef>Usuario</th>
+              <td mat-cell *matCellDef="let user">
+                <div class="user-cell">
+                  <strong>{{ user.nombre }}</strong>
+                  <span>{{ user.correo }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="rol">
+              <th mat-header-cell *matHeaderCellDef>Rol</th>
+              <td mat-cell *matCellDef="let user">
+                <span class="role-pill">{{ getUserRole(user)?.nombre || 'Sin rol' }}</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let user">
+                <span class="status-pill" [class.inactive]="user.activo === false">
+                  {{ user.activo === false ? 'Inactivo' : 'Activo' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let user">
+                <div class="row-actions">
+                  <button mat-icon-button type="button" aria-label="Editar usuario" (click)="editUser(user)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Desactivar usuario"
+                    [disabled]="user.activo === false"
+                    (click)="deactivateUser(user)"
+                  >
+                    <mat-icon>block</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</section>

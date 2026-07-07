@@ -1,0 +1,60 @@
+<section class="login-shell">
+  <div class="blur-backdrop"></div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="login-card">
+    <h1>Iniciar Sesion</h1>
+
+    <div class="fields">
+      <mat-form-field appearance="fill">
+        <mat-label>Correo</mat-label>
+        <input matInput type="email" formControlName="correo" autocomplete="email" />
+        @if (form.controls.correo.hasError('required')) {
+          <mat-error>El correo es obligatorio</mat-error>
+        }
+        @if (form.controls.correo.hasError('email')) {
+          <mat-error>Ingresa un correo valido</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Contraseña</mat-label>
+        <input
+          matInput
+          [type]="hidePassword ? 'password' : 'text'"
+          formControlName="password"
+          autocomplete="current-password"
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          [attr.aria-label]="hidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+          (click)="hidePassword = !hidePassword"
+        >
+          <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+        @if (form.controls.password.hasError('required')) {
+          <mat-error>La contraseña es obligatoria</mat-error>
+        }
+        @if (form.controls.password.hasError('minlength')) {
+          <mat-error>Debe tener al menos 6 caracteres</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="error-box">
+        <mat-icon>error</mat-icon>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <button mat-flat-button type="submit" class="submit-button" [disabled]="isLoading()">
+      @if (isLoading()) {
+        <mat-spinner diameter="20"></mat-spinner>
+      } @else {
+        <span>Iniciar Sesion</span>
+      }
+    </button>
+  </form>
+</section>

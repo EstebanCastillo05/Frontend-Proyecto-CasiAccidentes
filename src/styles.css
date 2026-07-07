@@ -1,1 +1,21 @@
-/* You can add global styles to this file, and also import other style files */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: #f4f4f5;
+}
+
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-fab.mat-primary,
+.mat-mdc-mini-fab.mat-primary {
+  --mdc-filled-button-container-color: #111113;
+  --mdc-filled-button-label-text-color: #ffffff;
+  --mdc-protected-button-container-color: #111113;
+  --mdc-protected-button-label-text-color: #ffffff;
+}
+
+.mat-mdc-progress-spinner {
+  --mdc-circular-progress-active-indicator-color: #111113;
+}

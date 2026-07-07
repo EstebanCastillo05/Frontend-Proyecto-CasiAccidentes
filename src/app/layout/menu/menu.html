@@ -1,37 +1,48 @@
 <mat-sidenav-container class="layout-container">
-
   <mat-sidenav #sidenav mode="over" class="mobile-sidebar">
-    <mat-nav-list>
-      @for (item of menuItems; track item.route) {
-        <a mat-list-item [routerLink]="item.route" routerLinkActive="activo" (click)="sidenav.close()">
-          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle>{{ item.label }}</span>
-        </a>
-      }
-    </mat-nav-list>
+    @if (!isLoginPage()) {
+      <mat-nav-list>
+        @for (item of menuItems; track item.route) {
+          <a mat-list-item [routerLink]="item.route" routerLinkActive="activo" (click)="sidenav.close()">
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.label }}</span>
+          </a>
+        }
+        <button mat-list-item type="button" (click)="logout(); sidenav.close()">
+          <mat-icon matListItemIcon>logout</mat-icon>
+          <span matListItemTitle>Salir</span>
+        </button>
+      </mat-nav-list>
+    }
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <nav class="floating-nav">
-      <span class="logo-text">Casi Accidentes</span>
+    @if (!isLoginPage()) {
+      <nav class="floating-nav">
+        <span class="logo-text">Casi Accidentes</span>
 
-      <div class="nav-links-desktop">
-        @for (item of menuItems; track item.route) {
-          <a class="nav-link" [routerLink]="item.route" routerLinkActive="activo">
-            <mat-icon>{{ item.icon }}</mat-icon>
-            <span>{{ item.label }}</span>
-          </a>
-        }
-      </div>
+        <div class="nav-links-desktop">
+          @for (item of menuItems; track item.route) {
+            <a class="nav-link" [routerLink]="item.route" routerLinkActive="activo">
+              <mat-icon>{{ item.icon }}</mat-icon>
+              <span>{{ item.label }}</span>
+            </a>
+          }
+        </div>
 
-      <button mat-icon-button class="btn-mobile-menu" (click)="sidenav.toggle()">
-        <mat-icon>menu</mat-icon>
-      </button>
-    </nav>
+        <button mat-button class="user-button" type="button" (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Salir</span>
+        </button>
 
-    <main class="content-area">
+        <button mat-icon-button class="btn-mobile-menu" (click)="sidenav.toggle()">
+          <mat-icon>menu</mat-icon>
+        </button>
+      </nav>
+    }
+
+    <main class="content-area" [class.login-content]="isLoginPage()">
       <router-outlet></router-outlet>
     </main>
   </mat-sidenav-content>
-
 </mat-sidenav-container>
