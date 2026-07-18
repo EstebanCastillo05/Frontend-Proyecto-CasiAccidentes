@@ -1,0 +1,172 @@
+<section class="dashboard-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Panel de control</p>
+      <h1>Dashboard de casi accidentes</h1>
+    </div>
+
+    <button mat-stroked-button type="button" (click)="loadDashboard()">
+      <mat-icon>refresh</mat-icon>
+      Actualizar
+    </button>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="42"></mat-spinner>
+      <span>Cargando datos del dashboard</span>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="feedback error">
+      <mat-icon>error</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  } @else {
+    @if (summary(); as data) {
+      <section class="summary-grid">
+        <mat-card class="summary-card">
+          <mat-card-content>
+            <span>Total casos</span>
+            <strong>{{ data.totalCasos }}</strong>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card accepted">
+          <mat-card-content>
+            <span>Aceptados</span>
+            <strong>{{ data.casosAceptados }}</strong>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card rejected">
+          <mat-card-content>
+            <span>Rechazados</span>
+            <strong>{{ data.casosRechazados }}</strong>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card pending">
+          <mat-card-content>
+            <span>Casos pendientes</span>
+            <strong>{{ data.casosPendientes }}</strong>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card">
+          <mat-card-content>
+            <span>Acciones abiertas</span>
+            <strong>{{ data.accionesAbiertas }}</strong>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card progress">
+          <mat-card-content>
+            <span>Avance promedio</span>
+            <strong>{{ data.avancePromedioAcciones }}%</strong>
+          </mat-card-content>
+        </mat-card>
+      </section>
+    }
+
+    <section class="dashboard-grid">
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Aceptados vs rechazados</mat-card-title>
+          <mat-card-subtitle>Distribucion de casos por procedencia</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (acceptedRejected().length) {
+            <div class="donut-list">
+              @for (item of acceptedRejected(); track item.estado) {
+                <div class="donut-row">
+                  <span>{{ item.estado }}</span>
+                  <strong>{{ item.valor }} ({{ acceptedRejectedPercent(item) }}%)</strong>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-state">Sin datos para mostrar.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Casos por estado</mat-card-title>
+          <mat-card-subtitle>Volumen actual por etapa del flujo</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (byStatus().length) {
+            <div class="bar-list">
+              @for (item of byStatus(); track item.id_estado ?? item.nombre) {
+                <div class="bar-row">
+                  <div class="bar-label">
+                    <span>{{ item.nombre }}</span>
+                    <strong>{{ item.total }}</strong>
+                  </div>
+                  <div class="bar-track">
+                    <span class="bar-fill status" [style.width]="barWidth(item.total, maxStatusTotal())"></span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-state">Sin datos para mostrar.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Casos por brigada</mat-card-title>
+          <mat-card-subtitle>Casos agrupados por brigada</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (byBrigade().length) {
+            <div class="bar-list">
+              @for (item of byBrigade(); track item.id_brigada ?? item.nombre) {
+                <div class="bar-row">
+                  <div class="bar-label">
+                    <span>{{ item.nombre }}</span>
+                    <strong>{{ item.total }}</strong>
+                  </div>
+                  <div class="bar-track">
+                    <span class="bar-fill brigade" [style.width]="barWidth(item.total, maxBrigadeTotal())"></span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-state">Sin datos para mostrar.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Tiempo por etapa</mat-card-title>
+          <mat-card-subtitle>Promedio de permanencia en dias</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (timeByStage().length) {
+            <div class="bar-list">
+              @for (item of timeByStage(); track item.id_estado ?? item.nombre) {
+                <div class="bar-row">
+                  <div class="bar-label">
+                    <span>{{ item.nombre }}</span>
+                    <strong>{{ item.diasPromedio }} dias</strong>
+                  </div>
+                  <div class="bar-track">
+                    <span class="bar-fill time" [style.width]="barWidth(item.diasPromedio, maxStageDays())"></span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-state">Sin datos para mostrar.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    </section>
+  }
+</section>
