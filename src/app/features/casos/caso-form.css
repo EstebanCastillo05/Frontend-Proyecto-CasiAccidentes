@@ -137,3 +137,28 @@
   justify-content: center;
   margin-top: 1.75rem;
 }
+
+.documentos-shell {
+  margin: 1.25rem auto 0;
+  padding: 0.25rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.documentos-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
+}
+
+.documentos-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.documentos-title h3 {
+  margin: 0;
+}

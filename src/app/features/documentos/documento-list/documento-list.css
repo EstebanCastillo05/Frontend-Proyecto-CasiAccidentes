@@ -1,0 +1,37 @@
+.list-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.list-header {
+  padding: 1rem 1rem 0;
+}
+
+.list-header h3 {
+  margin: 0 0 0.25rem;
+}
+
+.list-header p {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.64);
+  font-size: 0.9rem;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.documents-table {
+  width: 100%;
+}
+
+.loading-state,
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 2rem 1rem;
+  color: rgba(0, 0, 0, 0.66);
+}

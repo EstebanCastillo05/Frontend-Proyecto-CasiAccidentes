@@ -16,6 +16,7 @@
           <button mat-stroked-button (click)="irABandeja()">Volver a la bandeja</button>
           <button mat-button (click)="registrarOtro()">Registrar otro caso</button>
         </div>
+
       </mat-card-content>
     </mat-card>
   } @else {
@@ -116,6 +117,19 @@
           </form>
         }
       </mat-card-content>
+    </mat-card>
+  }
+
+  @if (casoIdParaDocumentos(); as casoId) {
+    <mat-card class="documentos-shell">
+      <div class="documentos-section">
+        <div class="documentos-title">
+          <mat-icon>folder_open</mat-icon>
+          <h3>Documentos</h3>
+        </div>
+        <app-documento-upload [idCaso]="casoId" (documentoSubido)="onDocumentoSubido()"></app-documento-upload>
+        <app-documento-list [idCaso]="casoId"></app-documento-list>
+      </div>
     </mat-card>
   }
 </div>

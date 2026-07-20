@@ -1,0 +1,56 @@
+.viewer-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 420px;
+}
+
+.viewer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.viewer-header h3 {
+  margin: 0 0 0.25rem;
+}
+
+.viewer-header p {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.viewer-frame {
+  width: 100%;
+  min-height: 480px;
+  border: 0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.image-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 280px;
+  background: #f8fafc;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.image-preview img {
+  max-width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+}
+
+.unsupported-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 260px;
+  color: rgba(0, 0, 0, 0.7);
+}

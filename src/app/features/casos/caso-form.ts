@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -13,6 +13,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { CasoService } from '../../core/casos/caso.service';
 import { Brigada, Caso, Catalogo } from '../../core/casos/caso.models';
 import { TextFieldModule } from '@angular/cdk/text-field';
+import { DocumentoUploadComponent } from '../../features/documentos/documento-upload/documento-upload';
+import { DocumentoListComponent } from '../../features/documentos/documento-list/documento-list';
 
 @Component({
   selector: 'app-caso-form',
@@ -29,6 +31,8 @@ import { TextFieldModule } from '@angular/cdk/text-field';
     MatProgressSpinnerModule,
     MatSelectModule,
     TextFieldModule,
+    DocumentoUploadComponent,
+    DocumentoListComponent,
   ],
   templateUrl: './caso-form.html',
   styleUrl: './caso-form.css',
@@ -37,6 +41,9 @@ export class CasoForm implements OnInit {
   private readonly casoService = inject(CasoService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
+
+  readonly idCasoInput = input<number | null>(null);
+  readonly documentoList = viewChild(DocumentoListComponent);
 
   readonly brigadas = signal<Brigada[]>([]);
   readonly contratistas = signal<Catalogo[]>([]);
@@ -58,6 +65,8 @@ export class CasoForm implements OnInit {
     if (!texto) return this.brigadas();
     return this.brigadas().filter((b) => (b.nombre || '').toLowerCase().includes(texto));
   });
+
+  readonly casoIdParaDocumentos = computed(() => this.savedCaso()?.id_casi_accidente ?? this.idCasoInput() ?? null);
 
   ngOnInit(): void {
     this.casoService.getBrigadas().subscribe({
@@ -119,6 +128,10 @@ export class CasoForm implements OnInit {
           this.errorMessage.set(error.error?.message || 'No se pudo registrar el caso');
         },
       });
+  }
+
+  onDocumentoSubido(): void {
+    this.documentoList()?.reload();
   }
 
   irASubirFormato(): void {
