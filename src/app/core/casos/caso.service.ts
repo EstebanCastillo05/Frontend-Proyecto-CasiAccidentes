@@ -21,6 +21,7 @@ export class CasoService {
     let params = new HttpParams();
     if (filters.id_region) params = params.set('id_region', filters.id_region);
     if (filters.id_estado) params = params.set('id_estado', filters.id_estado);
+    if (filters.id_brigada) params = params.set('id_brigada', filters.id_brigada);
 
     return this.http
       .get<ApiListResponse<Caso>>(`${API_BASE_URL}/casos`, { params })
@@ -73,6 +74,26 @@ export class CasoService {
   getContratistas(): Observable<Catalogo[]> {
   return this.http
     .get<ApiListResponse<Catalogo>>(`${API_BASE_URL}/contratistas`)
+    .pipe(map((response) => response.data));
+  }
+  
+  searchBrigadas(query: string): Observable<Brigada[]> {
+    let params = new HttpParams();
+    if (query) params = params.set('q', query);
+    return this.http
+      .get<ApiListResponse<Brigada>>(`${API_BASE_URL}/brigadas`, { params })
+      .pipe(map((response) => response.data));
+  }
+
+  getProcesos(): Observable<Catalogo[]> {
+    return this.http
+      .get<ApiListResponse<Catalogo>>(`${API_BASE_URL}/procesos`)
+      .pipe(map((response) => response.data));
+  }
+
+  reactivarCaso(id: number): Observable<Caso> {
+  return this.http
+    .patch<ApiResponse<Caso>>(`${API_BASE_URL}/casos/${id}/reactivar`, {})
     .pipe(map((response) => response.data));
   }
 }

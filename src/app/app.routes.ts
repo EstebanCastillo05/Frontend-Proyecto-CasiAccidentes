@@ -11,6 +11,7 @@ export const routes: Routes = [
   { path: 'admin/usuarios', component: AdminUsers, canActivate: [authGuard] },
   { path: 'casos', component: CasoList, canActivate: [authGuard] },
   { path: 'casos/nuevo', component: CasoForm, canActivate: [authGuard] },
+  { path: 'casos/:id/editar', component: CasoForm, canActivate: [authGuard] },
   { path: '', redirectTo: 'admin/usuarios', pathMatch: 'full' },
   { path: '**', redirectTo: 'admin/usuarios' },
 ];

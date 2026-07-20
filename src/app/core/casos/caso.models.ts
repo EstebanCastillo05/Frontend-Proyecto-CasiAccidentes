@@ -16,7 +16,11 @@ export interface Brigada {
   id_proceso: number | null;
   id_contratista: number | null;
   activo: boolean | null;
+  regiones?: Catalogo | null;
+  procesos?: Catalogo | null;
+  contratistas?: Catalogo | null;
 }
+
 
 export interface Catalogo {
   id_region?: number;
@@ -72,4 +76,21 @@ export interface UpdateCasoRequest {
 export interface CasoFilters {
   id_region?: number;
   id_estado?: number;
+  id_brigada?: number;
+}
+
+export interface CreateCasoRequest {
+  titulo: string;
+  descripcion: string;
+  id_brigada: number;
+  id_proceso: number;
+  id_contratista?: number | null;
+}
+
+export interface UpdateCasoRequest {
+  titulo?: string;
+  descripcion?: string;
+  id_brigada?: number;
+  id_proceso?: number;
+  id_contratista?: number | null;
 }

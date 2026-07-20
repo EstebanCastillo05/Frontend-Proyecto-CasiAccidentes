@@ -18,6 +18,15 @@
         </div>
       </mat-card-content>
     </mat-card>
+  } @else if (formBloqueado()) {
+    <mat-card class="form-card">
+      <mat-card-content class="bloqueado-content">
+        <mat-icon class="icono-bloqueado">lock</mat-icon>
+        <h2>No se puede editar este caso</h2>
+        <p class="texto-secundario">{{ errorMessage() }}</p>
+        <button mat-flat-button color="primary" (click)="irABandeja()">Volver a la bandeja</button>
+      </mat-card-content>
+    </mat-card>
   } @else {
     <mat-card class="form-card">
       <div class="form-header">
@@ -25,8 +34,14 @@
           <mat-icon class="header-icon">report_problem</mat-icon>
         </div>
         <div>
-          <h2>Registrar Casi Accidente</h2>
-          <p class="subtitulo">Completa los datos iniciales. Región y proceso se asignan automáticamente según la brigada.</p>
+          <h2>{{ isEditMode() ? 'Editar Casi Accidente' : 'Registrar Casi Accidente' }}</h2>
+          <p class="subtitulo">
+            @if (isEditMode()) {
+              Modifica los datos del caso.
+            } @else {
+              Completa los datos iniciales.
+            }
+          </p>
         </div>
       </div>
 
@@ -86,6 +101,34 @@
               </mat-form-field>
 
               <mat-form-field appearance="outline">
+                <mat-label>Región</mat-label>
+                <mat-icon matIconPrefix>map</mat-icon>
+                <input matInput [value]="regionSeleccionada()" disabled placeholder="Se asigna al elegir la brigada" />
+              </mat-form-field>
+            </div>
+
+            <div class="fila-doble">
+              <mat-form-field appearance="outline">
+                <mat-label>Proceso</mat-label>
+                <mat-icon matPrefix>account_tree</mat-icon>
+                <input
+                  matInput
+                  formControlName="procesoSearch"
+                  [matAutocomplete]="autoProceso"
+                  (input)="onProcesoSearchChange()"
+                  placeholder="Buscar proceso..."
+                />
+                <mat-autocomplete #autoProceso="matAutocomplete" [displayWith]="displayProceso" (optionSelected)="onProcesoSelected($event)">
+                  @for (proceso of filteredProcesos(); track proceso.id_proceso) {
+                    <mat-option [value]="proceso">{{ proceso.nombre }}</mat-option>
+                  }
+                </mat-autocomplete>
+                @if (form.controls.id_proceso.value === 0 && form.controls.procesoSearch.touched) {
+                  <mat-error>Selecciona un proceso de la lista</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
                 <mat-label>Contratista (opcional)</mat-label>
                 <mat-icon matPrefix>business</mat-icon>
                 <mat-select formControlName="id_contratista">
@@ -105,11 +148,14 @@
             }
 
             <div class="acciones-form">
+              @if (isEditMode()) {
+                <button mat-stroked-button type="button" (click)="irABandeja()">Cancelar</button>
+              }
               <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">
                 @if (isSaving()) {
                   <mat-spinner diameter="20"></mat-spinner>
                 } @else {
-                  <span>Registrar caso</span>
+                  <span>{{ isEditMode() ? 'Guardar cambios' : 'Registrar caso' }}</span>
                 }
               </button>
             </div>
