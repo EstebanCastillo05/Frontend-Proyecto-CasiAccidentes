@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -45,6 +45,7 @@ export class DocumentoUploadComponent {
   readonly uploadProgress = signal(0);
   readonly errorMessage = signal('');
   readonly isDragOver = signal(false);
+  private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   readonly form = this.formBuilder.nonNullable.group({
     idTipoDocumento: [1, [Validators.required]],
@@ -82,6 +83,10 @@ export class DocumentoUploadComponent {
   clearSelection(): void {
     this.selectedFile.set(null);
     this.errorMessage.set('');
+  }
+
+  triggerFileInput(): void {
+    this.fileInput()?.nativeElement.click();
   }
 
   submit(): void {
@@ -172,6 +177,17 @@ export class DocumentoUploadComponent {
   private isAllowedFile(file: File): boolean {
     const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
     const type = file.type.toLowerCase();
-    return ['pdf', 'png', 'jpg', 'jpeg'].includes(extension) || ['application/pdf', 'image/png', 'image/jpeg'].includes(type);
+    const allowedExtensions = ['pdf', 'png', 'jpg', 'jpeg', 'xls', 'xlsx', 'csv', 'xlsm'];
+    const allowedTypes = [
+      'application/pdf',
+      'image/png',
+      'image/jpeg',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/csv',
+      'application/csv',
+    ];
+
+    return allowedExtensions.includes(extension) || allowedTypes.includes(type);
   }
 }

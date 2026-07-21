@@ -5,7 +5,7 @@
     </div>
     <div>
       <h3>Subir documento</h3>
-      <p>Adjunta un archivo PDF, PNG o JPG de hasta 5 MB.</p>
+      <p>Adjunta un archivo PDF, imagen o Excel de hasta 5 MB.</p>
     </div>
   </div>
 
@@ -20,9 +20,9 @@
       <mat-icon class="dropzone-icon">attach_file</mat-icon>
       <p class="dropzone-title">Arrastra y suelta el archivo aquí</p>
       <p class="dropzone-help">o selecciona uno desde tu equipo</p>
-      <input type="file" id="fileInput" hidden (change)="onFileSelected($event)" />
+      <input #fileInput type="file" id="fileInput" hidden (change)="onFileSelected($event)" accept=".pdf,.png,.jpg,.jpeg,.xls,.xlsx,.csv,.xlsm" />
       <label for="fileInput" class="file-trigger">
-        <button mat-stroked-button color="primary" type="button">Seleccionar archivo</button>
+        <button mat-stroked-button color="primary" type="button" (click)="triggerFileInput()">Seleccionar archivo</button>
       </label>
     </div>
 
