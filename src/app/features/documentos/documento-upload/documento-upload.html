@@ -1,0 +1,84 @@
+<mat-card class="upload-card">
+  <div class="upload-header">
+    <div class="upload-icon">
+      <mat-icon>cloud_upload</mat-icon>
+    </div>
+    <div>
+      <h3>Subir documento</h3>
+      <p>Adjunta un archivo PDF, imagen o Excel de hasta 5 MB.</p>
+    </div>
+  </div>
+
+  <mat-card-content>
+    <div
+      class="dropzone"
+      [class.drag-over]="isDragOver()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+    >
+      <mat-icon class="dropzone-icon">attach_file</mat-icon>
+      <p class="dropzone-title">Arrastra y suelta el archivo aquí</p>
+      <p class="dropzone-help">o selecciona uno desde tu equipo</p>
+      <input #fileInput type="file" id="fileInput" hidden (change)="onFileSelected($event)" accept=".pdf,.png,.jpg,.jpeg,.xls,.xlsx,.csv,.xlsm" />
+      <label for="fileInput" class="file-trigger">
+        <button mat-stroked-button color="primary" type="button" (click)="triggerFileInput()">Seleccionar archivo</button>
+      </label>
+    </div>
+
+    @if (selectedFile()) {
+      <div class="selected-file">
+        <div>
+          <p class="selected-file-name">{{ selectedFile()?.name }}</p>
+          <p class="selected-file-size">{{ (selectedFile()?.size ?? 0) / (1024 * 1024) | number: '1.0-2' }} MB</p>
+        </div>
+        <button mat-icon-button type="button" (click)="clearSelection()" aria-label="Eliminar selección">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="upload-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo de documento</mat-label>
+        <mat-select formControlName="idTipoDocumento">
+          @for (tipo of tiposDocumento; track tipo.value) {
+            <mat-option [value]="tipo.value">{{ tipo.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="descripcion" rows="3" placeholder="Describe el documento que vas a adjuntar"></textarea>
+        @if (form.controls.descripcion.hasError('required') && form.controls.descripcion.touched) {
+          <mat-error>La descripción es obligatoria</mat-error>
+        }
+      </mat-form-field>
+
+      @if (errorMessage()) {
+        <div class="error-message">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      @if (isUploading()) {
+        <div class="progress-block">
+          <mat-progress-bar mode="determinate" [value]="uploadProgress()"></mat-progress-bar>
+          <p>{{ uploadProgress() }}% cargado</p>
+        </div>
+      }
+
+      <div class="actions">
+        <button mat-flat-button color="primary" type="submit" [disabled]="isUploading()">
+          @if (isUploading()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <span>Subir documento</span>
+          }
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
