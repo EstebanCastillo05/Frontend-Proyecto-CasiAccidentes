@@ -76,13 +76,23 @@
         </mat-card-header>
         <mat-card-content>
           @if (acceptedRejected().length) {
-            <div class="donut-list">
-              @for (item of acceptedRejected(); track item.estado) {
-                <div class="donut-row">
-                  <span>{{ item.estado }}</span>
-                  <strong>{{ item.valor }} ({{ acceptedRejectedPercent(item) }}%)</strong>
+            <div class="donut-panel">
+              <div class="donut-chart" [style.background]="acceptedRejectedGradient()">
+                <div class="donut-center">
+                  <strong>{{ acceptedRejectedTotal() }}</strong>
+                  <span>casos</span>
                 </div>
-              }
+              </div>
+
+              <div class="donut-list">
+                @for (item of acceptedRejectedChart(); track item.label) {
+                  <div class="donut-row">
+                    <span class="legend-dot" [style.background]="item.color"></span>
+                    <span>{{ item.label }}</span>
+                    <strong>{{ item.valor }} ({{ item.percent }}%)</strong>
+                  </div>
+                }
+              </div>
             </div>
           } @else {
             <p class="empty-state">Sin datos para mostrar.</p>

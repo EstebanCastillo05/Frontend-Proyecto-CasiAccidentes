@@ -14,6 +14,14 @@ import {
   TimeByStageDatum,
 } from '../../core/dashboard/dashboard.models';
 
+interface DonutDatum extends AcceptedRejectedDatum {
+  label: string;
+  color: string;
+  percent: number;
+  start: number;
+  end: number;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -36,6 +44,39 @@ export class Dashboard implements OnInit {
   readonly maxStatusTotal = computed(() => this.maxTotal(this.byStatus()));
   readonly maxBrigadeTotal = computed(() => this.maxTotal(this.byBrigade()));
   readonly maxStageDays = computed(() => Math.max(...this.timeByStage().map((item) => item.diasPromedio), 1));
+  readonly acceptedRejectedTotal = computed(() =>
+    this.acceptedRejected().reduce((sum, current) => sum + current.valor, 0)
+  );
+  readonly acceptedRejectedChart = computed<DonutDatum[]>(() => {
+    const total = this.acceptedRejectedTotal();
+    let offset = 0;
+
+    return this.acceptedRejected().map((item) => {
+      const percent = total ? Math.round((item.valor / total) * 100) : 0;
+      const start = offset;
+      offset += percent;
+
+      return {
+        ...item,
+        label: this.normalizeOutcome(item.estado),
+        color: this.outcomeColor(item.estado),
+        percent,
+        start,
+        end: offset,
+      };
+    });
+  });
+  readonly acceptedRejectedGradient = computed(() => {
+    const segments = this.acceptedRejectedChart().filter((item) => item.valor > 0);
+
+    if (!segments.length) {
+      return 'conic-gradient(#eef3f5 0% 100%)';
+    }
+
+    return `conic-gradient(${segments
+      .map((item) => `${item.color} ${item.start}% ${item.end}%`)
+      .join(', ')})`;
+  });
 
   ngOnInit(): void {
     this.loadDashboard();
@@ -75,9 +116,23 @@ export class Dashboard implements OnInit {
   }
 
   acceptedRejectedPercent(item: AcceptedRejectedDatum): number {
-    const total = this.acceptedRejected().reduce((sum, current) => sum + current.valor, 0);
+    const total = this.acceptedRejectedTotal();
     if (!total) return 0;
     return Math.round((item.valor / total) * 100);
+  }
+
+  private normalizeOutcome(value: string): string {
+    const normalized = value.toLowerCase();
+    if (normalized.includes('acept')) return 'Aceptados';
+    if (normalized.includes('rechaz')) return 'Rechazados';
+    return 'Pendientes';
+  }
+
+  private outcomeColor(value: string): string {
+    const normalized = value.toLowerCase();
+    if (normalized.includes('acept')) return '#16875a';
+    if (normalized.includes('rechaz')) return '#a6540b';
+    return '#20a8d8';
   }
 
   private maxTotal(items: Array<{ total: number }>): number {
