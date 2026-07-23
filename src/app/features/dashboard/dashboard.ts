@@ -131,15 +131,17 @@ export class Dashboard implements OnInit {
 
   private normalizeOutcome(value: string): string {
     const normalized = value.toLowerCase();
-    if (normalized.includes('acept')) return 'Aceptados';
-    if (normalized.includes('rechaz')) return 'Rechazados';
+    if (normalized.includes('proceso')) return 'En proceso';
+    if (normalized.includes('resuelt')) return 'Resueltos';
+    if (normalized.includes('acept')) return 'Resueltos';
+    if (normalized.includes('rechaz') || normalized.includes('anulad')) return 'Rechazados o anulados';
     return 'Pendientes';
   }
 
   private outcomeColor(value: string): string {
     const normalized = value.toLowerCase();
-    if (normalized.includes('acept')) return '#16875a';
-    if (normalized.includes('rechaz')) return '#a6540b';
+    if (normalized.includes('resuelt') || normalized.includes('acept')) return '#16875a';
+    if (normalized.includes('rechaz') || normalized.includes('anulad')) return '#a6540b';
     return '#20a8d8';
   }
 
