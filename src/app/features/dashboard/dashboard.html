@@ -5,10 +5,16 @@
       <h1>Dashboard de casi accidentes</h1>
     </div>
 
-    <button mat-stroked-button type="button" (click)="loadDashboard()">
-      <mat-icon>refresh</mat-icon>
-      Actualizar
-    </button>
+    <div class="header-actions">
+      @if (lastUpdatedAt(); as updatedAt) {
+        <span>Actualizado {{ updatedAt | date: 'HH:mm' }}</span>
+      }
+
+      <button mat-stroked-button type="button" (click)="loadDashboard()">
+        <mat-icon>refresh</mat-icon>
+        Actualizar
+      </button>
+    </div>
   </header>
 
   @if (isLoading()) {
@@ -78,7 +84,7 @@
           @if (acceptedRejected().length) {
             <div class="donut-panel">
               <div class="donut-chart" [style.background]="acceptedRejectedGradient()">
-                <div class="donut-center">
+                <div class="donut-center" translate="no">
                   <strong>{{ acceptedRejectedTotal() }}</strong>
                   <span>casos</span>
                 </div>
@@ -88,7 +94,7 @@
                 @for (item of acceptedRejectedChart(); track item.label) {
                   <div class="donut-row">
                     <span class="legend-dot" [style.background]="item.color"></span>
-                    <span>{{ item.label }}</span>
+                    <span translate="no">{{ item.label }}</span>
                     <strong>{{ item.valor }} ({{ item.percent }}%)</strong>
                   </div>
                 }
@@ -111,7 +117,7 @@
               @for (item of byStatus(); track item.id_estado ?? item.nombre) {
                 <div class="bar-row">
                   <div class="bar-label">
-                    <span>{{ item.nombre }}</span>
+                    <span translate="no">{{ item.nombre }}</span>
                     <strong>{{ item.total }}</strong>
                   </div>
                   <div class="bar-track">
@@ -137,7 +143,7 @@
               @for (item of byBrigade(); track item.id_brigada ?? item.nombre) {
                 <div class="bar-row">
                   <div class="bar-label">
-                    <span>{{ item.nombre }}</span>
+                    <span translate="no">{{ item.nombre }}</span>
                     <strong>{{ item.total }}</strong>
                   </div>
                   <div class="bar-track">
@@ -154,6 +160,37 @@
 
       <mat-card class="chart-card">
         <mat-card-header>
+          <mat-card-title>Acciones correctivas</mat-card-title>
+          <mat-card-subtitle>Volumen por estado y avance promedio</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (correctiveProgress().length) {
+            <div class="action-list">
+              @for (item of correctiveProgress(); track item.estado) {
+                <div class="action-row">
+                  <div class="action-header">
+                    <div>
+                      <span translate="no">{{ item.estado }}</span>
+                      <small>{{ item.total }} acciones</small>
+                    </div>
+                    <strong>{{ item.avancePromedio }}%</strong>
+                  </div>
+
+                  <div class="stacked-track">
+                    <span class="stacked-count" [style.width]="barWidth(item.total, maxCorrectiveTotal())"></span>
+                    <span class="stacked-progress" [style.width]="progressWidth(item.avancePromedio)"></span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-state">Sin acciones correctivas registradas.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="chart-card wide-card">
+        <mat-card-header>
           <mat-card-title>Tiempo por etapa</mat-card-title>
           <mat-card-subtitle>Promedio de permanencia en dias</mat-card-subtitle>
         </mat-card-header>
@@ -163,7 +200,7 @@
               @for (item of timeByStage(); track item.id_estado ?? item.nombre) {
                 <div class="bar-row">
                   <div class="bar-label">
-                    <span>{{ item.nombre }}</span>
+                    <span translate="no">{{ item.nombre }}</span>
                     <strong>{{ item.diasPromedio }} dias</strong>
                   </div>
                   <div class="bar-track">

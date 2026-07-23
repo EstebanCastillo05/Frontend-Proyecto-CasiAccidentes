@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -25,7 +26,7 @@ interface DonutDatum extends AcceptedRejectedDatum {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [MatButtonModule, MatCardModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [DatePipe, MatButtonModule, MatCardModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -40,9 +41,11 @@ export class Dashboard implements OnInit {
   readonly timeByStage = signal<TimeByStageDatum[]>([]);
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
+  readonly lastUpdatedAt = signal<Date | null>(null);
 
   readonly maxStatusTotal = computed(() => this.maxTotal(this.byStatus()));
   readonly maxBrigadeTotal = computed(() => this.maxTotal(this.byBrigade()));
+  readonly maxCorrectiveTotal = computed(() => this.maxTotal(this.correctiveProgress()));
   readonly maxStageDays = computed(() => Math.max(...this.timeByStage().map((item) => item.diasPromedio), 1));
   readonly acceptedRejectedTotal = computed(() =>
     this.acceptedRejected().reduce((sum, current) => sum + current.valor, 0)
@@ -101,6 +104,7 @@ export class Dashboard implements OnInit {
         this.byBrigade.set(data.byBrigade);
         this.correctiveProgress.set(data.correctiveProgress);
         this.timeByStage.set(data.timeByStage);
+        this.lastUpdatedAt.set(new Date());
         this.isLoading.set(false);
       },
       error: () => {
@@ -113,6 +117,10 @@ export class Dashboard implements OnInit {
   barWidth(value: number, max: number): string {
     if (max <= 0) return '0%';
     return `${Math.max((value / max) * 100, value > 0 ? 8 : 0)}%`;
+  }
+
+  progressWidth(value: number): string {
+    return `${Math.min(Math.max(value, 0), 100)}%`;
   }
 
   acceptedRejectedPercent(item: AcceptedRejectedDatum): number {
