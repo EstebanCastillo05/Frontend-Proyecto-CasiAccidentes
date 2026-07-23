@@ -8,6 +8,9 @@ export interface DashboardSummary {
   casosAceptados: number;
   casosRechazados: number;
   casosPendientes: number;
+  enProceso: number;
+  resueltos: number;
+  rechazadosAnulados: number;
   totalAcciones: number;
   accionesAbiertas: number;
   avancePromedioAcciones: number;

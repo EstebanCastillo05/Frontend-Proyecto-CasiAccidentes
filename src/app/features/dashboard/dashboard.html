@@ -37,24 +37,24 @@
           </mat-card-content>
         </mat-card>
 
+        <mat-card class="summary-card pending">
+          <mat-card-content>
+            <span>En proceso</span>
+            <strong>{{ data.enProceso }}</strong>
+          </mat-card-content>
+        </mat-card>
+
         <mat-card class="summary-card accepted">
           <mat-card-content>
-            <span>Aceptados</span>
-            <strong>{{ data.casosAceptados }}</strong>
+            <span>Resueltos</span>
+            <strong>{{ data.resueltos }}</strong>
           </mat-card-content>
         </mat-card>
 
         <mat-card class="summary-card rejected">
           <mat-card-content>
-            <span>Rechazados</span>
-            <strong>{{ data.casosRechazados }}</strong>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="summary-card pending">
-          <mat-card-content>
-            <span>Casos pendientes</span>
-            <strong>{{ data.casosPendientes }}</strong>
+            <span>Rechazados/Anulados</span>
+            <strong>{{ data.rechazadosAnulados }}</strong>
           </mat-card-content>
         </mat-card>
 
