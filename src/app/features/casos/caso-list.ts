@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -17,6 +18,8 @@ import { CasoService } from '../../core/casos/caso.service';
 import { Brigada, Caso, Catalogo } from '../../core/casos/caso.models';
 import { ESTADOS_CASO } from '../../core/casos/caso-estados.data';
 import { DatePipe } from '@angular/common';
+import { MotivoDialogComponent } from '../../shared/components/motivo-dialog/motivo-dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 
 const ESTADOS_EDITABLES = [5, 7, 8, 9, 10];
 const ESTADO_ANULADO_ID = 14;
@@ -30,6 +33,7 @@ const ESTADOS_CERRADOS = [12, 13];
     MatAutocompleteModule,
     MatButtonModule,
     MatCardModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -45,12 +49,14 @@ const ESTADOS_CERRADOS = [12, 13];
 export class CasoList implements OnInit {
   private readonly casoService = inject(CasoService);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly brigadaSearch$ = new Subject<string>();
 
   readonly casos = signal<Caso[]>([]);
   readonly regiones = signal<Catalogo[]>([]);
   readonly filteredBrigadas = signal<Brigada[]>([]);
   readonly isLoading = signal(true);
+  readonly isSaving = signal(false);
   readonly errorMessage = signal('');
   readonly feedback = signal('');
 
@@ -59,6 +65,28 @@ export class CasoList implements OnInit {
   readonly filtroEstado = signal<number | null>(null);
   readonly filtroBrigadaId = signal<number | null>(null);
   readonly brigadaSearchTerm = signal('');
+
+  // Lógica de Bandeja Dinámica por Rol Real
+  readonly modoBandeja = signal<boolean>(true);
+
+  readonly casosFiltrados = computed(() => {
+    let lista = this.casos();
+
+    if (this.modoBandeja()) {
+      const usuarioLogueado = JSON.parse(localStorage.getItem('usuario') || '{}');
+      const rolUsuario = (usuarioLogueado.rol || usuarioLogueado.nombre_rol || '').toUpperCase();
+
+      if (rolUsuario.includes('SYMA') || rolUsuario.includes('GESTOR')) {
+        // Incluye estado 1 (Nuevo) para poder evaluar, además de los de gestión
+        lista = lista.filter((c) => c.id_estado === 1 || c.id_estado === 4 || c.id_estado === 11);
+      } else if (rolUsuario.includes('RESPONSABLE')) {
+        lista = lista.filter((c) => c.id_estado === 3);
+      } else if (rolUsuario.includes('PRL') || rolUsuario.includes('CONTRATISTA')) {
+        lista = lista.filter((c) => c.id_estado === 2);
+      }
+    }
+    return lista;
+  });
 
   readonly displayedColumns = ['numero_caso', 'titulo', 'brigada', 'region', 'estado', 'fecha_reporte', 'acciones'];
 
@@ -84,6 +112,7 @@ export class CasoList implements OnInit {
 
     this.cargarCasos();
   }
+
   cargarCasos(): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
@@ -104,6 +133,10 @@ export class CasoList implements OnInit {
         this.errorMessage.set('No se pudieron cargar los casos');
       },
     });
+  }
+
+  toggleModoBandeja(): void {
+    this.modoBandeja.set(!this.modoBandeja());
   }
 
   displayBrigada(brigada: Brigada | string): string {
@@ -157,38 +190,50 @@ export class CasoList implements OnInit {
   }
 
   anular(caso: Caso): void {
-    const motivo = window.prompt(`Motivo para anular el caso ${caso.numero_caso}:`);
-    if (motivo === null) return;
-    if (!motivo.trim()) {
-      this.errorMessage.set('El motivo es obligatorio para anular un caso');
-      return;
-    }
-
-    this.casoService.anularCaso(caso.id_casi_accidente, motivo.trim()).subscribe({
-      next: () => {
-        this.feedback.set(`Caso ${caso.numero_caso} anulado correctamente`);
-        this.cargarCasos();
-      },
-      error: (error) => {
-        this.errorMessage.set(error.error?.message || 'No se pudo anular el caso');
+    const dialogRef = this.dialog.open(MotivoDialogComponent, {
+      width: '450px',
+      data: {
+        titulo: `Anular Caso ${caso.numero_caso}`,
+        subtitulo: 'Por favor, ingresa el motivo obligatorio para proceder con la anulación del expediente:',
       },
     });
+
+    dialogRef.afterClosed().subscribe((motivo) => {
+      if (!motivo) return;
+
+      this.isSaving.set(true);
+      this.casoService.anularCaso(caso.id_casi_accidente, motivo).subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          this.feedback.set(`Caso ${caso.numero_caso} anulado correctamente`);
+          this.cargarCasos();
+        },
+        error: (error) => {
+          this.isSaving.set(false);
+          this.errorMessage.set(error.error?.message || 'No se pudo anular el caso');
+        },
+      });
+    });
   }
+
   editarCaso(caso: Caso): void {
     this.router.navigate(['/casos', caso.id_casi_accidente, 'editar']);
   }
 
   puedeReactivar(caso: Caso): boolean {
-  return caso.id_estado === ESTADO_ANULADO_ID;
+    return caso.id_estado === ESTADO_ANULADO_ID;
   }
 
   reactivar(caso: Caso): void {
+    this.isSaving.set(true);
     this.casoService.reactivarCaso(caso.id_casi_accidente).subscribe({
       next: () => {
+        this.isSaving.set(false);
         this.feedback.set(`Caso ${caso.numero_caso} reactivado correctamente`);
         this.cargarCasos();
       },
       error: (error) => {
+        this.isSaving.set(false);
         this.errorMessage.set(error.error?.message || 'No se pudo reactivar el caso');
       },
     });

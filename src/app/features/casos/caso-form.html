@@ -34,11 +34,16 @@
     <mat-card class="form-card">
       <mat-card-content class="bloqueado-content">
         <mat-icon class="icono-bloqueado">lock</mat-icon>
-        <h2>No se puede editar este caso</h2>
+        <h2>Caso de Solo Lectura</h2>
         <p class="texto-secundario">{{ errorMessage() }}</p>
         <button mat-flat-button color="primary" (click)="irABandeja()">Volver a la bandeja</button>
       </mat-card-content>
     </mat-card>
+
+    <!-- Línea de tiempo visible incluso si el caso está bloqueado/cerrado para auditoría -->
+    @if (isEditMode() && historialCaso().length > 0) {
+      <app-caso-timeline [historial]="historialCaso()"></app-caso-timeline>
+    }
   } @else {
     <mat-card class="form-card">
       <div class="form-header">
@@ -46,10 +51,10 @@
           <mat-icon class="header-icon">report_problem</mat-icon>
         </div>
         <div>
-          <h2>{{ isEditMode() ? 'Editar Casi Accidente' : 'Registrar Casi Accidente' }}</h2>
+          <h2>{{ isEditMode() ? 'Detalle y Gestión de Caso' : 'Registrar Casi Accidente' }}</h2>
           <p class="subtitulo">
             @if (isEditMode()) {
-              Modifica los datos del caso.
+              Visualiza y gestiona las acciones de acuerdo con el estado del caso.
             } @else {
               Completa los datos iniciales.
             }
@@ -67,28 +72,28 @@
         } @else {
           <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
             <mat-form-field appearance="outline">
-              <mat-label>Titulo</mat-label>
+              <mat-label>Título</mat-label>
               <mat-icon matPrefix>title</mat-icon>
-              <input matInput formControlName="titulo" placeholder="Ej. Caida de material en bodega" />
+              <input matInput formControlName="titulo" placeholder="Ej. Caída de material en bodega" />
               @if (form.controls.titulo.hasError('required') && form.controls.titulo.touched) {
-                <mat-error>El titulo es obligatorio</mat-error>
+                <mat-error>El título es obligatorio</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="textarea-field">
-            <mat-label>Descripcion</mat-label>
-            <mat-icon matPrefix>notes</mat-icon>
-            <textarea 
+              <mat-label>Descripción</mat-label>
+              <mat-icon matPrefix>notes</mat-icon>
+              <textarea 
                 matInput 
                 formControlName="descripcion" 
                 cdkTextareaAutosize 
                 cdkAutosizeMinRows="1" 
                 cdkAutosizeMaxRows="5"
-                placeholder="Describe que sucedio, donde y como">
-            </textarea>
-            @if (form.controls.descripcion.hasError('required') && form.controls.descripcion.touched) {
-                <mat-error>La descripcion es obligatoria</mat-error>
-            }
+                placeholder="Describe qué sucedió, dónde y cómo">
+              </textarea>
+              @if (form.controls.descripcion.hasError('required') && form.controls.descripcion.touched) {
+                <mat-error>La descripción es obligatoria</mat-error>
+              }
             </mat-form-field>
 
             <div class="fila-doble">
@@ -161,17 +166,52 @@
 
             <div class="acciones-form">
               @if (isEditMode()) {
-                <button mat-stroked-button type="button" (click)="irABandeja()">Cancelar</button>
-              }
-              <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">
-                @if (isSaving()) {
-                  <mat-spinner diameter="20"></mat-spinner>
-                } @else {
-                  <span>{{ isEditMode() ? 'Guardar cambios' : 'Registrar caso' }}</span>
+                <button mat-stroked-button type="button" (click)="irABandeja()">Volver</button>
+
+                <!-- Controles Condicionales por Estado -->
+                @if (esNuevo()) {
+                  <button mat-flat-button color="accent" type="button" (click)="evaluarCaso()" style="margin-left: 8px;">
+                    <mat-icon>rate_review</mat-icon>
+                    Evaluar
+                  </button>
                 }
-              </button>
+
+                @if (esEvaluado()) {
+                  <button mat-flat-button color="primary" type="button" (click)="asignarCorreccion()" style="margin-left: 8px;">
+                    <mat-icon>assignment</mat-icon>
+                    Asignar Corrección
+                  </button>
+                  <button mat-flat-button color="warn" type="button" (click)="cerrarCaso()" style="margin-left: 8px;">
+                    <mat-icon>check_circle_outline</mat-icon>
+                    Cerrar Caso
+                  </button>
+                }
+
+                @if (!esCerrado()) {
+                  <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()" style="margin-left: 8px;">
+                    @if (isSaving()) {
+                      <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                      <span>Guardar cambios</span>
+                    }
+                  </button>
+                }
+              } @else {
+                <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">
+                  @if (isSaving()) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  } @else {
+                    <span>Registrar caso</span>
+                  }
+                </button>
+              }
             </div>
           </form>
+
+          <!-- Línea de tiempo visible al fondo del formulario cuando estamos editando un caso activo -->
+          @if (isEditMode()) {
+            <app-caso-timeline [historial]="historialCaso()"></app-caso-timeline>
+          }
         }
       </mat-card-content>
     </mat-card>

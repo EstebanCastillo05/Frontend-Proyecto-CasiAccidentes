@@ -9,6 +9,14 @@ export interface ApiListResponse<T> {
   pagination?: { page: number; limit: number; total: number; totalPages: number };
 }
 
+export interface HistorialEstadoItem {
+  fecha: string | Date;
+  estado: string;
+  usuario?: string;
+  comentario?: string;
+  icono?: string;
+}
+
 export interface Brigada {
   id_brigada: number;
   nombre: string | null;
@@ -20,7 +28,6 @@ export interface Brigada {
   procesos?: Catalogo | null;
   contratistas?: Catalogo | null;
 }
-
 
 export interface Catalogo {
   id_region?: number;
@@ -57,26 +64,7 @@ export interface Caso {
   brigadas: Brigada | null;
   contratistas: Catalogo | null;
   estados: Estado | null;
-}
-
-export interface CreateCasoRequest {
-  titulo: string;
-  descripcion: string;
-  id_brigada: number;
-  id_contratista?: number | null;
-}
-
-export interface UpdateCasoRequest {
-  titulo?: string;
-  descripcion?: string;
-  id_brigada?: number;
-  id_contratista?: number | null;
-}
-
-export interface CasoFilters {
-  id_region?: number;
-  id_estado?: number;
-  id_brigada?: number;
+  historial_estados?: HistorialEstadoItem[];
 }
 
 export interface CreateCasoRequest {
@@ -93,4 +81,10 @@ export interface UpdateCasoRequest {
   id_brigada?: number;
   id_proceso?: number;
   id_contratista?: number | null;
+}
+
+export interface CasoFilters {
+  id_region?: number;
+  id_estado?: number;
+  id_brigada?: number;
 }
