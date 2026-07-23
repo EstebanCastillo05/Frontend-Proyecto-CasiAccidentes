@@ -1,0 +1,179 @@
+<div class="caso-form-container">
+  @if (savedCaso(); as caso) {
+    <mat-card class="confirmacion-card">
+      <mat-card-content>
+        <mat-icon class="icono-exito">check_circle</mat-icon>
+        <h2>Caso registrado</h2>
+        <p class="numero-caso">{{ caso.numero_caso }}</p>
+        <p class="titulo-caso">{{ caso.titulo }}</p>
+        <p class="texto-secundario">Estado inicial: {{ caso.estados?.nombre }}</p>
+
+        <div class="acciones-confirmacion">
+          <button mat-flat-button color="primary" (click)="irASubirFormato()">
+            <mat-icon>upload_file</mat-icon>
+            Subir Formato
+          </button>
+          <button mat-stroked-button (click)="irABandeja()">Volver a la bandeja</button>
+          <button mat-button (click)="registrarOtro()">Registrar otro caso</button>
+        </div>
+
+        @if (mostrarSeccionDocumentos() && casoIdParaDocumentos(); as casoId) {
+          <div class="documentos-section">
+            <mat-divider></mat-divider>
+            <div class="documentos-title">
+              <mat-icon>folder_open</mat-icon>
+              <h3>Documentos</h3>
+            </div>
+            <app-documento-upload [idCaso]="casoId" (documentoSubido)="onDocumentoSubido()"></app-documento-upload>
+            <app-documento-list [idCaso]="casoId"></app-documento-list>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  } @else if (formBloqueado()) {
+    <mat-card class="form-card">
+      <mat-card-content class="bloqueado-content">
+        <mat-icon class="icono-bloqueado">lock</mat-icon>
+        <h2>No se puede editar este caso</h2>
+        <p class="texto-secundario">{{ errorMessage() }}</p>
+        <button mat-flat-button color="primary" (click)="irABandeja()">Volver a la bandeja</button>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <mat-card class="form-card">
+      <div class="form-header">
+        <div class="header-icon-container">
+          <mat-icon class="header-icon">report_problem</mat-icon>
+        </div>
+        <div>
+          <h2>{{ isEditMode() ? 'Editar Casi Accidente' : 'Registrar Casi Accidente' }}</h2>
+          <p class="subtitulo">
+            @if (isEditMode()) {
+              Modifica los datos del caso.
+            } @else {
+              Completa los datos iniciales.
+            }
+          </p>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <mat-card-content>
+        @if (isLoading()) {
+          <div class="loading-container">
+            <mat-spinner diameter="32"></mat-spinner>
+          </div>
+        } @else {
+          <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Titulo</mat-label>
+              <mat-icon matPrefix>title</mat-icon>
+              <input matInput formControlName="titulo" placeholder="Ej. Caida de material en bodega" />
+              @if (form.controls.titulo.hasError('required') && form.controls.titulo.touched) {
+                <mat-error>El titulo es obligatorio</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="textarea-field">
+            <mat-label>Descripcion</mat-label>
+            <mat-icon matPrefix>notes</mat-icon>
+            <textarea 
+                matInput 
+                formControlName="descripcion" 
+                cdkTextareaAutosize 
+                cdkAutosizeMinRows="1" 
+                cdkAutosizeMaxRows="5"
+                placeholder="Describe que sucedio, donde y como">
+            </textarea>
+            @if (form.controls.descripcion.hasError('required') && form.controls.descripcion.touched) {
+                <mat-error>La descripcion es obligatoria</mat-error>
+            }
+            </mat-form-field>
+
+            <div class="fila-doble">
+              <mat-form-field appearance="outline">
+                <mat-label>Brigada</mat-label>
+                <mat-icon matPrefix>groups</mat-icon>
+                <input
+                  matInput
+                  formControlName="brigadaSearch"
+                  [matAutocomplete]="autoBrigada"
+                  (input)="onBrigadaSearchChange()"
+                  placeholder="Buscar brigada..."
+                />
+                <mat-autocomplete #autoBrigada="matAutocomplete" [displayWith]="displayBrigada" (optionSelected)="onBrigadaSelected($event)">
+                  @for (brigada of filteredBrigadas(); track brigada.id_brigada) {
+                    <mat-option [value]="brigada">{{ brigada.nombre }}</mat-option>
+                  }
+                </mat-autocomplete>
+                @if (form.controls.id_brigada.value === 0 && form.controls.brigadaSearch.touched) {
+                  <mat-error>Selecciona una brigada de la lista</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Región</mat-label>
+                <mat-icon matIconPrefix>map</mat-icon>
+                <input matInput [value]="regionSeleccionada()" disabled placeholder="Se asigna al elegir la brigada" />
+              </mat-form-field>
+            </div>
+
+            <div class="fila-doble">
+              <mat-form-field appearance="outline">
+                <mat-label>Proceso</mat-label>
+                <mat-icon matPrefix>account_tree</mat-icon>
+                <input
+                  matInput
+                  formControlName="procesoSearch"
+                  [matAutocomplete]="autoProceso"
+                  (input)="onProcesoSearchChange()"
+                  placeholder="Buscar proceso..."
+                />
+                <mat-autocomplete #autoProceso="matAutocomplete" [displayWith]="displayProceso" (optionSelected)="onProcesoSelected($event)">
+                  @for (proceso of filteredProcesos(); track proceso.id_proceso) {
+                    <mat-option [value]="proceso">{{ proceso.nombre }}</mat-option>
+                  }
+                </mat-autocomplete>
+                @if (form.controls.id_proceso.value === 0 && form.controls.procesoSearch.touched) {
+                  <mat-error>Selecciona un proceso de la lista</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Contratista (opcional)</mat-label>
+                <mat-icon matPrefix>business</mat-icon>
+                <mat-select formControlName="id_contratista">
+                  <mat-option [value]="null">Sin contratista</mat-option>
+                  @for (contratista of contratistas(); track contratista.id_contratista) {
+                    <mat-option [value]="contratista.id_contratista">{{ contratista.nombre }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            @if (errorMessage()) {
+              <p class="error-message">
+                <mat-icon>error_outline</mat-icon>
+                {{ errorMessage() }}
+              </p>
+            }
+
+            <div class="acciones-form">
+              @if (isEditMode()) {
+                <button mat-stroked-button type="button" (click)="irABandeja()">Cancelar</button>
+              }
+              <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">
+                @if (isSaving()) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                  <span>{{ isEditMode() ? 'Guardar cambios' : 'Registrar caso' }}</span>
+                }
+              </button>
+            </div>
+          </form>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

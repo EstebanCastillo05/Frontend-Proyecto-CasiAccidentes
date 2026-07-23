@@ -49,6 +49,23 @@
       </div>
     }
 
+    @if (form.invalid && form.touched) {
+      <div class="validation-errors">
+        @if (form.get('correo')?.hasError('required')) {
+          <p>• El correo es obligatorio</p>
+        }
+        @if (form.get('correo')?.hasError('email')) {
+          <p>• El correo debe ser válido</p>
+        }
+        @if (form.get('password')?.hasError('required')) {
+          <p>• La contraseña es obligatoria</p>
+        }
+        @if (form.get('password')?.hasError('minlength')) {
+          <p>• Mínimo 6 caracteres en la contraseña</p>
+        }
+      </div>
+    }
+
     <button mat-flat-button type="submit" class="submit-button" [disabled]="isLoading()">
       @if (isLoading()) {
         <mat-spinner diameter="20"></mat-spinner>
