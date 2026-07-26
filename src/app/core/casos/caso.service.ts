@@ -46,9 +46,27 @@ export class CasoService {
       .pipe(map((response) => response.data));
   }
 
+  evaluarCaso(id: number): Observable<Caso> {
+    return this.http
+      .post<ApiResponse<Caso>>(`${API_BASE_URL}/casos/${id}/evaluar`, {})
+      .pipe(map((response) => response.data));
+  }
+
+  cerrarCaso(id: number, motivo: string): Observable<Caso> {
+    return this.http
+      .put<ApiResponse<Caso>>(`${API_BASE_URL}/casos/${id}/cerrar`, { motivo })
+      .pipe(map((response) => response.data));
+  }
+
   anularCaso(id: number, motivo: string): Observable<Caso> {
     return this.http
       .delete<ApiResponse<Caso>>(`${API_BASE_URL}/casos/${id}`, { body: { motivo } })
+      .pipe(map((response) => response.data));
+  }
+
+  reactivarCaso(id: number): Observable<Caso> {
+    return this.http
+      .patch<ApiResponse<Caso>>(`${API_BASE_URL}/casos/${id}/reactivar`, {})
       .pipe(map((response) => response.data));
   }
 
@@ -72,9 +90,9 @@ export class CasoService {
   }
 
   getContratistas(): Observable<Catalogo[]> {
-  return this.http
-    .get<ApiListResponse<Catalogo>>(`${API_BASE_URL}/contratistas`)
-    .pipe(map((response) => response.data));
+    return this.http
+      .get<ApiListResponse<Catalogo>>(`${API_BASE_URL}/contratistas`)
+      .pipe(map((response) => response.data));
   }
   
   searchBrigadas(query: string): Observable<Brigada[]> {
@@ -89,11 +107,5 @@ export class CasoService {
     return this.http
       .get<ApiListResponse<Catalogo>>(`${API_BASE_URL}/procesos`)
       .pipe(map((response) => response.data));
-  }
-
-  reactivarCaso(id: number): Observable<Caso> {
-  return this.http
-    .patch<ApiResponse<Caso>>(`${API_BASE_URL}/casos/${id}/reactivar`, {})
-    .pipe(map((response) => response.data));
   }
 }

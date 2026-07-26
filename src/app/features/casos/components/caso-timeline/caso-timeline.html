@@ -1,0 +1,33 @@
+<div class="timeline-container">
+  <h3>Trazabilidad e Historial del Caso</h3>
+  @if (historial().length === 0) {
+    <p class="empty-text">No hay registros de historial disponibles para este caso.</p>
+  } @else {
+    <div class="timeline">
+      @for (item of historial(); track $index; let last = $last) {
+        <div class="timeline-item" [class.last]="last">
+          <div class="timeline-icon-wrapper">
+            <mat-icon>{{ item.icono || 'radio_button_checked' }}</mat-icon>
+            @if (!last) {
+              <div class="timeline-line"></div>
+            }
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <span class="estado-badge">{{ item.estado }}</span>
+              <span class="timeline-date">{{ item.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            @if (item.usuario) {
+              <p class="timeline-user">
+                <mat-icon inline>person</mat-icon> {{ item.usuario }}
+              </p>
+            }
+            @if (item.comentario) {
+              <p class="timeline-comment">{{ item.comentario }}</p>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -2,8 +2,12 @@
   @if (savedCaso(); as caso) {
   <mat-card class="confirmacion-card">
     <mat-card-content>
-      <mat-icon class="icono-exito">check_circle</mat-icon>
-      <h2>Caso registrado</h2>
+      <mat-icon class="icono-exito">
+        check_circle
+      </mat-icon>
+      <h2>
+        Caso registrado
+      </h2>
       <p class="numero-caso">
         {{ caso.numero_caso }}
       </p>
@@ -24,8 +28,12 @@
       </div>
       <mat-divider></mat-divider>
       <div class="documentos-title">
-        <mat-icon>upload_file</mat-icon>
-        <h3>Adjuntar documentos</h3>
+        <mat-icon>
+          upload_file
+        </mat-icon>
+        <h3>
+          Adjuntar documentos
+        </h3>
       </div>
       <app-documento-upload [idCaso]="caso.id_casi_accidente!" (documentoSubido)="onDocumentoSubido()">
       </app-documento-upload>
@@ -38,7 +46,9 @@
       <mat-icon class="icono-bloqueado">
         lock
       </mat-icon>
-      <h2>No se puede editar este caso</h2>
+      <h2>
+        Caso de Solo Lectura
+      </h2>
       <p class="texto-secundario">
         {{ errorMessage() }}
       </p>
@@ -47,6 +57,10 @@
       </button>
     </mat-card-content>
   </mat-card>
+  @if (isEditMode() && historialCaso().length > 0) {
+  <app-caso-timeline [historial]="historialCaso()">
+  </app-caso-timeline>
+  }
   }
   @else {
   <mat-card class="form-card">
@@ -58,14 +72,17 @@
       </div>
       <div>
         <h2>
-          {{ isEditMode()
-          ? 'Editar Casi Accidente'
-          : 'Registrar Casi Accidente' }}
+          {{
+          isEditMode()
+          ? 'Detalle y Gestión de Caso'
+          : 'Registrar Casi Accidente'
+          }}
         </h2>
         <p class="subtitulo">
           @if (isEditMode()) {
-          Modifica los datos del caso.
-          } @else {
+          Visualiza y gestiona las acciones de acuerdo con el estado del caso.
+          }
+          @else {
           Completa los datos iniciales.
           }
         </p>
@@ -80,43 +97,60 @@
       }
       @else {
       <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
-
         <mat-form-field appearance="outline">
-          <mat-label>Titulo</mat-label>
-          <mat-icon matPrefix>title</mat-icon>
-          <input matInput formControlName="titulo" placeholder="Ej. Caida de material en bodega" />
-          @if (form.controls.titulo.hasError('required') &&
-          form.controls.titulo.touched) {
+          <mat-label>
+            Titulo
+          </mat-label>
+          <mat-icon matPrefix>
+            title
+          </mat-icon>
+          <input matInput formControlName="titulo" placeholder="Ej. Caida de material en bodega">
+          @if (
+          form.controls.titulo.hasError('required')
+          &&
+          form.controls.titulo.touched
+          ) {
           <mat-error>
             El titulo es obligatorio
           </mat-error>
           }
         </mat-form-field>
-
         <mat-form-field appearance="outline" class="textarea-field">
-          <mat-label>Descripcion</mat-label>
-          <mat-icon matPrefix>notes</mat-icon>
+          <mat-label>
+            Descripcion
+          </mat-label>
+          <mat-icon matPrefix>
+            notes
+          </mat-icon>
           <textarea matInput formControlName="descripcion" cdkTextareaAutosize cdkAutosizeMinRows="1"
             cdkAutosizeMaxRows="5" placeholder="Describe que sucedio, donde y como">
           </textarea>
-          @if (form.controls.descripcion.hasError('required')
-          && form.controls.descripcion.touched) {
+          @if (
+          form.controls.descripcion.hasError('required')
+          &&
+          form.controls.descripcion.touched
+          ) {
           <mat-error>
             La descripcion es obligatoria
           </mat-error>
           }
         </mat-form-field>
-
         <div class="fila-doble">
           <mat-form-field appearance="outline">
-            <mat-label>Brigada</mat-label>
-            <mat-icon matPrefix>groups</mat-icon>
+            <mat-label>
+              Brigada
+            </mat-label>
+            <mat-icon matPrefix>
+              groups
+            </mat-icon>
             <input matInput formControlName="brigadaSearch" [matAutocomplete]="autoBrigada"
-              (input)="onBrigadaSearchChange()" placeholder="Buscar brigada..." />
+              (input)="onBrigadaSearchChange()" placeholder="Buscar brigada...">
             <mat-autocomplete #autoBrigada="matAutocomplete" [displayWith]="displayBrigada"
               (optionSelected)="onBrigadaSelected($event)">
-              @for (brigada of filteredBrigadas();
-              track brigada.id_brigada) {
+              @for (
+              brigada of filteredBrigadas();
+              track brigada.id_brigada
+              ) {
               <mat-option [value]="brigada">
                 {{ brigada.nombre }}
               </mat-option>
@@ -124,22 +158,31 @@
             </mat-autocomplete>
           </mat-form-field>
           <mat-form-field appearance="outline">
-            <mat-label>Región</mat-label>
-            <mat-icon matIconPrefix>map</mat-icon>
-            <input matInput [value]="regionSeleccionada()" disabled />
+            <mat-label>
+              Región
+            </mat-label>
+            <mat-icon matPrefix>
+              map
+            </mat-icon>
+            <input matInput [value]="regionSeleccionada()" disabled>
           </mat-form-field>
         </div>
-
         <div class="fila-doble">
           <mat-form-field appearance="outline">
-            <mat-label>Proceso</mat-label>
-            <mat-icon matPrefix>account_tree</mat-icon>
+            <mat-label>
+              Proceso
+            </mat-label>
+            <mat-icon matPrefix>
+              account_tree
+            </mat-icon>
             <input matInput formControlName="procesoSearch" [matAutocomplete]="autoProceso"
-              (input)="onProcesoSearchChange()" placeholder="Buscar proceso..." />
+              (input)="onProcesoSearchChange()" placeholder="Buscar proceso...">
             <mat-autocomplete #autoProceso="matAutocomplete" [displayWith]="displayProceso"
               (optionSelected)="onProcesoSelected($event)">
-              @for (proceso of filteredProcesos();
-              track proceso.id_proceso) {
+              @for (
+              proceso of filteredProcesos();
+              track proceso.id_proceso
+              ) {
               <mat-option [value]="proceso">
                 {{ proceso.nombre }}
               </mat-option>
@@ -147,14 +190,20 @@
             </mat-autocomplete>
           </mat-form-field>
           <mat-form-field appearance="outline">
-            <mat-label>Contratista (opcional)</mat-label>
-            <mat-icon matPrefix>business</mat-icon>
+            <mat-label>
+              Contratista (opcional)
+            </mat-label>
+            <mat-icon matPrefix>
+              business
+            </mat-icon>
             <mat-select formControlName="id_contratista">
               <mat-option [value]="null">
                 Sin contratista
               </mat-option>
-              @for (contratista of contratistas();
-              track contratista.id_contratista) {
+              @for (
+              contratista of contratistas();
+              track contratista.id_contratista
+              ) {
               <mat-option [value]="contratista.id_contratista">
                 {{ contratista.nombre }}
               </mat-option>
@@ -164,69 +213,88 @@
         </div>
         @if (errorMessage()) {
         <p class="error-message">
-          <mat-icon>error_outline</mat-icon>
+          <mat-icon>
+            error_outline
+          </mat-icon>
           {{ errorMessage() }}
         </p>
         }
-
         <div class="acciones-form">
-
           @if (isEditMode()) {
           <button mat-stroked-button type="button" (click)="irABandeja()">
-            Cancelar
+            Volver
+          </button>
+          @if (esNuevo()) {
+          <button mat-flat-button color="accent" type="button" (click)="evaluarCaso()">
+            <mat-icon>
+              rate_review
+            </mat-icon>
+            Evaluar
           </button>
           }
-
+          @if (esEvaluado()) {
+          <button mat-flat-button color="primary" type="button" (click)="asignarCorreccion()">
+            <mat-icon>
+              assignment
+            </mat-icon>
+            Asignar Corrección
+          </button>
+          <button mat-flat-button color="warn" type="button" (click)="cerrarCaso()">
+            <mat-icon>
+              check_circle_outline
+            </mat-icon>
+            Cerrar Caso
+          </button>
+          }
+          @if (!esCerrado()) {
           <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">
-
             @if (isSaving()) {
             <mat-spinner diameter="20"></mat-spinner>
             }
             @else {
-            <span>
-              {{ isEditMode()
-              ? 'Guardar cambios'
-              : 'Registrar caso' }}
-            </span>
+            Guardar cambios
             }
-
           </button>
-
+          }
+          }
+          @else {
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">
+            @if (isSaving()) {
+            <mat-spinner diameter="20"></mat-spinner>
+            }
+            @else {
+            Registrar caso
+            }
+          </button>
+          }
         </div>
-
       </form>
-
+      @if (isEditMode()) {
+      <app-caso-timeline [historial]="historialCaso()">
+      </app-caso-timeline>
       }
-
+      }
     </mat-card-content>
-
   </mat-card>
   }
 </div>
-
 @if (isEditMode() && casoId()) {
-
 <div class="documentos-container">
-
   <mat-card class="documentos-card">
-
     <mat-card-content>
-
       <div class="documentos-title">
-        <mat-icon>folder_open</mat-icon>
-        <h3>Gestión documental</h3>
+        <mat-icon>
+          folder_open
+        </mat-icon>
+        <h3>
+          Gestión documental
+        </h3>
       </div>
-
       <app-documento-upload [idCaso]="casoId()!" (documentoSubido)="onDocumentoSubido()">
       </app-documento-upload>
-
       <app-documento-list [idCaso]="casoId()!">
       </app-documento-list>
-
     </mat-card-content>
-
   </mat-card>
-
 </div>
-
 }

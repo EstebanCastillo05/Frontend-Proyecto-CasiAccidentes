@@ -11,11 +11,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { TextFieldModule } from '@angular/cdk/text-field';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { CasoService } from '../../core/casos/caso.service';
 import { Brigada, Caso, Catalogo } from '../../core/casos/caso.models';
 import { DocumentoListComponent } from '../documentos/documento-list/documento-list';
 import { DocumentoUploadComponent } from '../documentos/documento-upload/documento-upload';
+import { MotivoDialogComponent } from '../../shared/components/motivo-dialog/motivo-dialog';
+import { CasoTimelineComponent, HistorialEstadoItem } from './components/caso-timeline/caso-timeline';
 
 const ESTADOS_EDITABLES = [5, 7, 8, 9, 10];
 
@@ -33,9 +36,11 @@ const ESTADOS_EDITABLES = [5, 7, 8, 9, 10];
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatDialogModule,
     TextFieldModule,
     DocumentoUploadComponent,
     DocumentoListComponent,
+    CasoTimelineComponent,
   ],
   templateUrl: './caso-form.html',
   styleUrl: './caso-form.css',
@@ -45,6 +50,7 @@ export class CasoForm implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly dialog = inject(MatDialog);
 
   readonly filteredBrigadas = signal<Brigada[]>([]);
   readonly procesos = signal<Catalogo[]>([]);
@@ -61,7 +67,22 @@ export class CasoForm implements OnInit {
   readonly mostrarSeccionDocumentos = signal(false);
   readonly documentoList = viewChild(DocumentoListComponent);
 
+  // Señal para alimentar la línea de tiempo con la trazabilidad del backend
+  readonly historialCaso = signal<HistorialEstadoItem[]>([]);
+
   readonly casoIdParaDocumentos = computed(() => this.savedCaso()?.id_casi_accidente ?? this.casoId() ?? null);
+
+  // Control de estados para la UI condicional
+  readonly casoActual = signal<Caso | null>(null);
+  readonly esNuevo = computed(() => this.casoActual()?.id_estado === 1);
+  readonly esEvaluado = computed(() => {
+    const estado = this.casoActual()?.id_estado ?? 0;
+    return [2, 3, 4, 7, 8, 9, 10, 11].includes(estado);
+  });
+  readonly esCerrado = computed(() => {
+    const estado = this.casoActual()?.id_estado ?? 0;
+    return [12, 13, 14].includes(estado);
+  });
 
   readonly form = this.formBuilder.nonNullable.group({
     titulo: ['', [Validators.required]],
@@ -112,10 +133,18 @@ export class CasoForm implements OnInit {
     this.isLoading.set(true);
     this.casoService.getCaso(id).subscribe({
       next: (caso) => {
-        if (!ESTADOS_EDITABLES.includes(caso.id_estado ?? 0)) {
+        this.casoActual.set(caso);
+        
+        // Mapeo del historial para la línea de tiempo
+        if (caso.historial_estados && Array.isArray(caso.historial_estados)) {
+          this.historialCaso.set(caso.historial_estados);
+        }
+
+        if (this.esCerrado()) {
           this.isLoading.set(false);
+          this.form.disable();
           this.formBloqueado.set(true);
-          this.errorMessage.set(`No se puede editar un caso en el estado actual (${caso.estados?.nombre})`);
+          this.errorMessage.set(`El caso se encuentra cerrado o anulado (${caso.estados?.nombre})`);
           return;
         }
 
@@ -178,6 +207,63 @@ export class CasoForm implements OnInit {
     const texto = (this.form.controls.procesoSearch.value || '').toLowerCase();
     if (!texto) return this.procesos();
     return this.procesos().filter((p) => (p.nombre || '').toLowerCase().includes(texto));
+  }
+
+  evaluarCaso(): void {
+    const id = this.casoId();
+    if (!id) return;
+
+    this.isSaving.set(true);
+    this.errorMessage.set('');
+
+    this.casoService.evaluarCaso(id).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.router.navigate(['/casos'], { state: { feedback: 'Caso evaluado correctamente' } });
+      },
+      error: (error) => {
+        this.isSaving.set(false);
+        this.errorMessage.set(error.error?.message || 'No se pudo evaluar el caso');
+      },
+    });
+  }
+
+  asignarCorreccion(): void {
+    const id = this.casoId();
+    if (!id) return;
+
+    this.router.navigate(['/casos', id, 'correcciones']);
+  }
+
+  cerrarCaso(): void {
+    const id = this.casoId();
+    if (!id) return;
+
+    const dialogRef = this.dialog.open(MotivoDialogComponent, {
+      width: '450px',
+      data: {
+        titulo: 'Cierre Formal de Caso',
+        subtitulo: 'Por favor, ingresa el motivo y las observaciones obligatorias para realizar el cierre formal:',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((motivo) => {
+      if (!motivo) return;
+
+      this.isSaving.set(true);
+      this.errorMessage.set('');
+
+      this.casoService.cerrarCaso(id, motivo).subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          this.router.navigate(['/casos'], { state: { feedback: 'Caso cerrado formalmente con éxito' } });
+        },
+        error: (error) => {
+          this.isSaving.set(false);
+          this.errorMessage.set(error.error?.message || 'No se pudo cerrar el caso');
+        },
+      });
+    });
   }
 
   submit(): void {
