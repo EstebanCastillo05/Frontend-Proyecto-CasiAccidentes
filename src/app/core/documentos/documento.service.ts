@@ -1,33 +1,78 @@
 import { HttpClient, HttpEvent } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { API_BASE_URL } from '../api.config';
-import { Documento, DocumentoResponse } from './documento.models';
 
-@Injectable({ providedIn: 'root' })
+import { API_BASE_URL } from '../api.config';
+
+import {
+
+  Documento,
+
+  DocumentoResponse,
+
+  DocumentoListResponse
+
+} from './documento.models';
+
+@Injectable({
+
+  providedIn: 'root'
+
+})
+
 export class DocumentoService {
+
   private readonly http = inject(HttpClient);
 
   subirDocumento(formData: FormData): Observable<HttpEvent<DocumentoResponse>> {
-    return this.http.post<DocumentoResponse>(`${API_BASE_URL}/documentos`, formData, {
-      observe: 'events',
-      reportProgress: true,
-    });
+
+    return this.http.post<DocumentoResponse>(
+
+      `${API_BASE_URL}/documentos`,
+
+      formData,
+
+      {
+
+        observe: 'events',
+
+        reportProgress: true
+
+      }
+
+    );
+
   }
 
-  obtenerPorCaso(idCaso: number): Observable<Documento[]> {
-    return this.http.get<Documento[]>(`${API_BASE_URL}/documentos/caso/${idCaso}`);
+  obtenerPorCaso(idCaso: number): Observable<DocumentoListResponse> {
+
+    return this.http.get<DocumentoListResponse>(
+
+      `${API_BASE_URL}/documentos/caso/id/${idCaso}`
+
+    );
+
   }
 
-  descargar(idDocumento: number): Observable<Blob> {
-    return this.http.get(`${API_BASE_URL}/documentos/${idDocumento}/download`, {
-      responseType: 'blob',
-    });
+  buscarPorNumeroCaso(numero: string): Observable<DocumentoListResponse> {
+
+    return this.http.get<DocumentoListResponse>(
+
+      `${API_BASE_URL}/documentos/caso/numero/${numero}`
+
+    );
+
+  }
+  obtenerUrl(id: number) {
+    return this.http.get<{
+      success: boolean;
+      data: {
+        url: string;
+      };
+    }>(
+      `${API_BASE_URL}/documentos/${id}/url`
+    );
   }
 
-  visualizar(idDocumento: number): Observable<Blob> {
-    return this.http.get(`${API_BASE_URL}/documentos/${idDocumento}/view`, {
-      responseType: 'blob',
-    });
-  }
 }
+

@@ -4,6 +4,7 @@ import { AdminUsers } from './features/admin-users/admin-users';
 import { Login } from './features/login/login';
 import { CasoForm } from './features/casos/caso-form';
 import { CasoList } from './features/casos/caso-list';
+import { DocumentoListComponent } from './features/documentos/documento-list/documento-list';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -12,6 +13,8 @@ export const routes: Routes = [
   { path: 'casos', component: CasoList, canActivate: [authGuard] },
   { path: 'casos/nuevo', component: CasoForm, canActivate: [authGuard] },
   { path: 'casos/:id/editar', component: CasoForm, canActivate: [authGuard] },
+  { path: 'documentos', component: DocumentoListComponent, canActivate: [authGuard] },
   { path: '', redirectTo: 'admin/usuarios', pathMatch: 'full' },
   { path: '**', redirectTo: 'admin/usuarios' },
+  
 ];

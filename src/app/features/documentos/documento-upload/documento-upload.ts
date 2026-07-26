@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { DecimalPipe } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
 import { DocumentoService } from '../../../core/documentos/documento.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-documento-upload',
@@ -46,6 +47,7 @@ export class DocumentoUploadComponent {
   readonly errorMessage = signal('');
   readonly isDragOver = signal(false);
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
+  private readonly router = inject(Router);
 
   readonly form = this.formBuilder.nonNullable.group({
     idTipoDocumento: [1, [Validators.required]],
@@ -130,14 +132,24 @@ export class DocumentoUploadComponent {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           this.uploadProgress.set(Math.round((event.loaded / event.total) * 100));
         }
-
         if (event.type === HttpEventType.Response) {
           this.isUploading.set(false);
           this.uploadProgress.set(100);
-          const message = event.body?.message ?? 'Documento cargado correctamente.';
-          this.snackBar.open(message, 'Cerrar', { duration: 3500 });
+          const message =
+            event.body?.message ?? 'Documento cargado correctamente.';
+          this.snackBar.open(message, 'Cerrar', {
+            duration: 1000
+          });
           this.resetForm();
           this.documentoSubido.emit();
+
+          setTimeout(() => {
+            this.router.navigate(['/dashboard'], {
+              state: {
+                feedback: 'Documento cargado correctamente.'
+              }
+            });
+          }, 2000);
         }
       },
       error: (error) => {
