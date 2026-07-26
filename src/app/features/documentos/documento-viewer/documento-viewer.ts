@@ -22,11 +22,8 @@ export class DocumentoViewerComponent implements OnInit {
   private readonly documentoService = inject(DocumentoService);
   private readonly dialogRef = inject(MatDialogRef<DocumentoViewerComponent>);
   private readonly sanitizer = inject(DomSanitizer);
-
   readonly documento = inject<Documento>(MAT_DIALOG_DATA);
-
   readonly previewUrl = signal('');
-
   readonly safePreviewUrl = computed(() =>
     this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl())
   );
@@ -56,27 +53,17 @@ export class DocumentoViewerComponent implements OnInit {
     this.documentoService
       .obtenerUrl(this.documento.id_documento)
       .subscribe({
-
         next: (resp) => {
-
           this.previewUrl.set(resp.data.url);
-
         }
-
       });
-
   }
 
   close(): void {
-
     this.dialogRef.close();
-
   }
-
+  
   descargar(): void {
-
     window.open(this.previewUrl(), '_blank');
-
   }
-
 }

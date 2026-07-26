@@ -1,126 +1,63 @@
 .viewer-shell {
-
   display: flex;
-
   flex-direction: column;
-
   gap: 1rem;
-
   width: 100%;
-
   height: 100%;
-
   padding: 12px 16px;
-
   box-sizing: border-box;
-
 }
-
-
-/* Cabecera */
 
 .viewer-header {
-
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
-
   gap: 1rem;
-
   padding: 8px 12px;
-
 }
-
 
 .viewer-header h3 {
-
   margin: 0 0 0.35rem;
-
   font-size: 1.4rem;
-
   font-weight: 600;
-
 }
-
 
 .viewer-header p {
-
   margin: 0;
-
   color: rgba(0, 0, 0, 0.65);
-
   font-size: 0.95rem;
-
 }
-
-
-/* PDF */
 
 .viewer-frame {
-
   width: 100%;
-
   height: 75vh;
-
   border: 0;
-
   border-radius: 12px;
-
   background: #f8fafc;
-
 }
-
-
-/* Imagen */
 
 .image-preview {
-
   width: 100%;
-
   height: 75vh;
-
   display: flex;
-
   justify-content: center;
-
   align-items: center;
-
   background: #f8fafc;
-
   border-radius: 12px;
-
   overflow: auto;
-
 }
-
 
 .image-preview img {
-
   max-width: 100%;
-
   max-height: 75vh;
-
   object-fit: contain;
-
 }
 
-
-/* Archivos no soportados */
-
 .unsupported-state {
-
   display: flex;
-
   flex-direction: column;
-
   align-items: center;
-
   justify-content: center;
-
   gap: 1rem;
-
   height: 300px;
-
 }

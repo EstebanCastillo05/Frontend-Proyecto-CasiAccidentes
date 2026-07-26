@@ -1,14 +1,6 @@
-import {
-  Component,
-  Input,
-  OnChanges,
-  SimpleChanges,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, inject, signal, } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
@@ -65,13 +57,9 @@ export class DocumentoListComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-
     if (changes['idCaso'] && this.idCaso) {
-
       this.cargarPorCaso();
-
     }
-
   }
 
   reload(): void {
@@ -81,69 +69,40 @@ export class DocumentoListComponent implements OnChanges {
   }
 
   cargarPorCaso(): void {
-
     this.isLoading.set(true);
-
     this.buscado.set(true);
-
     this.documentoService.obtenerPorCaso(this.idCaso!).subscribe({
-
       next: (resp) => {
-
         console.log(resp);
-
         this.documentos.set(resp.data);
-
         this.isLoading.set(false);
-
       },
 
       error: (err) => {
-
         console.error(err);
-
         this.documentos.set([]);
-
         this.isLoading.set(false);
-
       }
-
     });
-
   }
 
   buscar(): void {
-
     if (!this.numeroCaso.trim()) {
-
       return;
-
     }
 
     this.buscado.set(true);
-
     this.isLoading.set(true);
-
     this.documentoService.buscarPorNumeroCaso(this.numeroCaso).subscribe({
-
       next: (resp) => {
-
         this.documentos.set(resp.data);
-
         this.isLoading.set(false);
-
       },
-
       error: () => {
-
         this.documentos.set([]);
-
         this.isLoading.set(false);
-
       }
-
     });
-
   }
 
   abrirVistaPrevia(documento: Documento): void {
@@ -156,20 +115,13 @@ export class DocumentoListComponent implements OnChanges {
   }
 
   descargar(documento: Documento): void {
-
     if (!documento.id_documento) return;
-
     this.documentoService
       .obtenerUrl(documento.id_documento)
       .subscribe({
-
         next: (resp) => {
-
           window.open(resp.data.url, '_blank');
-
         }
-
       });
-
   }
 }

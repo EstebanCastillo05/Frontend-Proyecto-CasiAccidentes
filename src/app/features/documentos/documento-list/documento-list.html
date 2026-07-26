@@ -1,158 +1,89 @@
 <mat-card class="list-card">
-
   <div class="list-header">
     <h2>Gestión Documental</h2>
-
     @if (modoBusqueda) {
     <p>Busque un caso para consultar todos los documentos asociados.</p>
     } @else {
     <p>Documentos asociados al caso.</p>
     }
   </div>
-
   <mat-card-content>
-
     @if (modoBusqueda) {
-
     <div class="search-bar">
-
       <mat-form-field appearance="outline">
         <mat-label>Número de caso</mat-label>
-
         <input matInput [(ngModel)]="numeroCaso" placeholder="CA-2026-0001" (keyup.enter)="buscar()">
-
         <mat-icon matSuffix>search</mat-icon>
-
       </mat-form-field>
-
       <button mat-flat-button color="primary" (click)="buscar()">
         Buscar
       </button>
-
     </div>
-
     }
-
     @if (isLoading()) {
-
     <div class="loading-state">
       <mat-spinner diameter="35"></mat-spinner>
     </div>
-
     }
-
     @else if (buscado() && documentos().length === 0) {
-
     <div class="empty-state">
       <mat-icon>folder_off</mat-icon>
       <span>No existen documentos para este caso.</span>
     </div>
-
     }
-
     @else if (documentos().length > 0) {
-
     <div class="table-wrapper">
-
       <table mat-table [dataSource]="documentos()" class="documents-table">
-
-        <!-- Tipo -->
-
         <ng-container matColumnDef="tipo">
           <th mat-header-cell *matHeaderCellDef>Tipo</th>
-
           <td mat-cell *matCellDef="let d">
-
             {{ d.tipos_documento?.nombre }}
-
           </td>
-
         </ng-container>
 
-        <!-- Archivo -->
-
         <ng-container matColumnDef="nombre">
-
           <th mat-header-cell *matHeaderCellDef>Archivo</th>
-
           <td mat-cell *matCellDef="let d">
             {{ d.nombre_archivo }}
           </td>
-
         </ng-container>
 
-        <!-- Version -->
-
         <ng-container matColumnDef="version">
-
           <th mat-header-cell *matHeaderCellDef>Versión</th>
-
           <td mat-cell *matCellDef="let d">
             v{{ d.version }}
           </td>
-
         </ng-container>
 
-        <!-- Descripcion -->
-
         <ng-container matColumnDef="descripcion">
-
           <th mat-header-cell *matHeaderCellDef>Descripción</th>
-
           <td mat-cell *matCellDef="let d">
             {{ d.descripcion || '-' }}
           </td>
-
         </ng-container>
-
-        <!-- Fecha -->
 
         <ng-container matColumnDef="fecha">
-
           <th mat-header-cell *matHeaderCellDef>Fecha</th>
-
           <td mat-cell *matCellDef="let d">
-
             {{ d.subido_en | date:'dd/MM/yyyy HH:mm' }}
-
           </td>
-
         </ng-container>
-
-        <!-- Acciones -->
 
         <ng-container matColumnDef="acciones">
-
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
-
           <td mat-cell *matCellDef="let d">
-
             <button mat-icon-button color="primary" (click)="abrirVistaPrevia(d)">
-
               <mat-icon>visibility</mat-icon>
-
             </button>
-
             <button mat-icon-button color="accent" (click)="descargar(d)">
-
               <mat-icon>download</mat-icon>
-
             </button>
-
           </td>
-
         </ng-container>
-
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-
       </table>
-
     </div>
-
     }
-
   </mat-card-content>
-
 </mat-card>
