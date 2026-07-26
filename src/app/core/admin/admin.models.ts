@@ -40,3 +40,59 @@ export interface UpdateUserRequest {
   id_rol?: number;
   activo?: boolean;
 }
+
+export interface Region {
+  id_region: number;
+  nombre: string | null;
+  descripcion?: string | null;
+  activo: boolean | null;
+}
+
+export interface Proceso {
+  id_proceso: number;
+  nombre: string | null;
+  descripcion?: string | null;
+  activo: boolean | null;
+}
+
+export interface Contratista {
+  id_contratista: number;
+  nombre: string | null;
+  correo?: string | null;
+  telefono?: string | null;
+  activo: boolean | null;
+}
+
+export interface Brigada {
+  id_brigada: number;
+  nombre: string | null;
+  id_region: number | null;
+  id_proceso: number | null;
+  id_contratista: number | null;
+  activo: boolean | null;
+  regiones?: Region | null;
+  procesos?: Proceso | null;
+  contratistas?: Contratista | null;
+}
+
+export interface BrigadaCatalogos {
+  regiones: Region[];
+  procesos: Proceso[];
+  contratistas: Contratista[];
+}
+
+export interface CreateBrigadaRequest {
+  nombre: string;
+  id_region: number | null;
+  id_proceso: number | null;
+  id_contratista: number | null;
+  activo: boolean;
+}
+
+export interface UpdateBrigadaRequest {
+  nombre?: string;
+  id_region?: number | null;
+  id_proceso?: number | null;
+  id_contratista?: number | null;
+  activo?: boolean;
+}
