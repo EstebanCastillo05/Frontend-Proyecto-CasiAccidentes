@@ -1,8 +1,8 @@
 <mat-sidenav-container class="layout-container">
   <mat-sidenav #sidenav mode="over" class="mobile-sidebar">
-    @if (!isLoginPage()) {
+    @if (!isLoginPage() && !esVisitantePublico()) {
       <mat-nav-list>
-        @for (item of menuItems; track item.route) {
+        @for (item of menuItems(); track item.route) {
           <a mat-list-item [routerLink]="item.route" routerLinkActive="activo" (click)="sidenav.close()">
             <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
             <span matListItemTitle>{{ item.label }}</span>
@@ -21,23 +21,30 @@
       <nav class="floating-nav">
         <span class="logo-text">Casi Accidentes</span>
 
-        <div class="nav-links-desktop">
-          @for (item of menuItems; track item.route) {
-            <a class="nav-link" [routerLink]="item.route" routerLinkActive="activo">
-              <mat-icon>{{ item.icon }}</mat-icon>
-              <span>{{ item.label }}</span>
-            </a>
-          }
-        </div>
+        @if (!esVisitantePublico()) {
+          <div class="nav-links-desktop">
+            @for (item of menuItems(); track item.route) {
+              <a class="nav-link" [routerLink]="item.route" routerLinkActive="activo">
+                <mat-icon>{{ item.icon }}</mat-icon>
+                <span>{{ item.label }}</span>
+              </a>
+            }
+          </div>
 
-        <button mat-button class="user-button" type="button" (click)="logout()">
-          <mat-icon>logout</mat-icon>
-          <span>Salir</span>
-        </button>
+          <button mat-button class="user-button" type="button" (click)="logout()">
+            <mat-icon>logout</mat-icon>
+            <span>Salir</span>
+          </button>
 
-        <button mat-icon-button class="btn-mobile-menu" (click)="sidenav.toggle()">
-          <mat-icon>menu</mat-icon>
-        </button>
+          <button mat-icon-button class="btn-mobile-menu" (click)="sidenav.toggle()">
+            <mat-icon>menu</mat-icon>
+          </button>
+        } @else {
+          <button mat-button class="user-button" routerLink="/login">
+            <mat-icon>login</mat-icon>
+            <span>Iniciar sesión</span>
+          </button>
+        }
       </nav>
     }
 

@@ -14,6 +14,7 @@ import {
   StatusDatum,
   TimeByStageDatum,
 } from '../../core/dashboard/dashboard.models';
+import { AuthService } from '../../core/auth/auth.service';
 
 interface DonutDatum extends AcceptedRejectedDatum {
   label: string;
@@ -42,6 +43,7 @@ export class Dashboard implements OnInit {
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
   readonly lastUpdatedAt = signal<Date | null>(null);
+  readonly authService = inject(AuthService);
 
   readonly maxStatusTotal = computed(() => this.maxTotal(this.byStatus()));
   readonly maxBrigadeTotal = computed(() => this.maxTotal(this.byBrigade()));

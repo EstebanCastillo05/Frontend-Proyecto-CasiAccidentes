@@ -108,4 +108,15 @@ export class CasoService {
       .get<ApiListResponse<Catalogo>>(`${API_BASE_URL}/procesos`)
       .pipe(map((response) => response.data));
   }
+
+  getBandeja(filters: CasoFilters = {}): Observable<Caso[]> {
+    let params = new HttpParams();
+    if (filters.id_region) params = params.set('id_region', filters.id_region);
+    if (filters.id_estado) params = params.set('id_estado', filters.id_estado);
+    if (filters.id_brigada) params = params.set('id_brigada', filters.id_brigada);
+
+    return this.http
+      .get<ApiListResponse<Caso>>(`${API_BASE_URL}/casos/bandeja`, { params })
+      .pipe(map((response) => response.data));
+  }
 }

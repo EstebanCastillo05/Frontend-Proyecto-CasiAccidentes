@@ -20,10 +20,20 @@ import { ESTADOS_CASO } from '../../core/casos/caso-estados.data';
 import { DatePipe } from '@angular/common';
 import { MotivoDialogComponent } from '../../shared/components/motivo-dialog/motivo-dialog';
 import { MatDialogModule } from '@angular/material/dialog';
+import { AuthService } from '../../core/auth/auth.service';
+import {
+  ROL_ADMINISTRADOR, ROL_BRIGADA, ROL_PRL_CONTRATISTA,
+  ROL_RESPONSABLE_PROCESO, ROL_GESTOR_SYMA, ROL_GESTION_CONTROL_SYMA,
+} from '../../core/auth/roles.constants';
 
 const ESTADOS_EDITABLES = [5, 7, 8, 9, 10];
 const ESTADO_ANULADO_ID = 14;
 const ESTADOS_CERRADOS = [12, 13];
+
+const ROLES_VEN_TODOS = [ROL_ADMINISTRADOR, ROL_GESTION_CONTROL_SYMA];
+const ROLES_PUEDEN_CREAR = [ROL_ADMINISTRADOR, ROL_PRL_CONTRATISTA];
+const ROLES_PUEDEN_EDITAR = [ROL_ADMINISTRADOR, ROL_PRL_CONTRATISTA, ROL_RESPONSABLE_PROCESO, ROL_GESTOR_SYMA, ROL_GESTION_CONTROL_SYMA];
+const ROLES_PUEDEN_ANULAR = [ROL_ADMINISTRADOR, ROL_PRL_CONTRATISTA];
 
 @Component({
   selector: 'app-caso-list',
@@ -50,6 +60,7 @@ export class CasoList implements OnInit {
   private readonly casoService = inject(CasoService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
+  private readonly authService = inject(AuthService);
   private readonly brigadaSearch$ = new Subject<string>();
 
   readonly casos = signal<Caso[]>([]);
@@ -66,26 +77,16 @@ export class CasoList implements OnInit {
   readonly filtroBrigadaId = signal<number | null>(null);
   readonly brigadaSearchTerm = signal('');
 
-  // Lógica de Bandeja Dinámica por Rol Real
-  readonly modoBandeja = signal<boolean>(true);
+  readonly esVistaTodos = computed(() => {
+    const user = this.authService.currentUser();
+    return !!user && ROLES_VEN_TODOS.includes(user.id_rol);
+  });
 
-  readonly casosFiltrados = computed(() => {
-    let lista = this.casos();
+  readonly tituloVista = computed(() => (this.esVistaTodos() ? 'Todos los casos' : 'Mi bandeja'));
 
-    if (this.modoBandeja()) {
-      const usuarioLogueado = JSON.parse(localStorage.getItem('usuario') || '{}');
-      const rolUsuario = (usuarioLogueado.rol || usuarioLogueado.nombre_rol || '').toUpperCase();
-
-      if (rolUsuario.includes('SYMA') || rolUsuario.includes('GESTOR')) {
-        // Incluye estado 1 (Nuevo) para poder evaluar, además de los de gestión
-        lista = lista.filter((c) => c.id_estado === 1 || c.id_estado === 4 || c.id_estado === 11);
-      } else if (rolUsuario.includes('RESPONSABLE')) {
-        lista = lista.filter((c) => c.id_estado === 3);
-      } else if (rolUsuario.includes('PRL') || rolUsuario.includes('CONTRATISTA')) {
-        lista = lista.filter((c) => c.id_estado === 2);
-      }
-    }
-    return lista;
+  readonly puedeCrear = computed(() => {
+    const user = this.authService.currentUser();
+    return !!user && ROLES_PUEDEN_CREAR.includes(user.id_rol);
   });
 
   readonly displayedColumns = ['numero_caso', 'titulo', 'brigada', 'region', 'estado', 'fecha_reporte', 'acciones'];
@@ -123,7 +124,11 @@ export class CasoList implements OnInit {
       id_brigada: this.filtroBrigadaId() ?? undefined,
     };
 
-    this.casoService.getCasos(filtros).subscribe({
+    const peticion$ = this.esVistaTodos()
+      ? this.casoService.getCasos(filtros)
+      : this.casoService.getBandeja(filtros);
+
+    peticion$.subscribe({
       next: (casos) => {
         this.casos.set(casos);
         this.isLoading.set(false);
@@ -133,10 +138,6 @@ export class CasoList implements OnInit {
         this.errorMessage.set('No se pudieron cargar los casos');
       },
     });
-  }
-
-  toggleModoBandeja(): void {
-    this.modoBandeja.set(!this.modoBandeja());
   }
 
   displayBrigada(brigada: Brigada | string): string {
@@ -169,12 +170,22 @@ export class CasoList implements OnInit {
   }
 
   puedeEditar(caso: Caso): boolean {
+    const user = this.authService.currentUser();
+    if (!user || !ROLES_PUEDEN_EDITAR.includes(user.id_rol)) return false;
     return ESTADOS_EDITABLES.includes(caso.id_estado ?? 0);
   }
 
   puedeAnular(caso: Caso): boolean {
+    const user = this.authService.currentUser();
+    if (!user || !ROLES_PUEDEN_ANULAR.includes(user.id_rol)) return false;
     const estado = caso.id_estado ?? 0;
     return estado !== ESTADO_ANULADO_ID && !ESTADOS_CERRADOS.includes(estado);
+  }
+
+  puedeReactivar(caso: Caso): boolean {
+    const user = this.authService.currentUser();
+    if (!user || !ROLES_PUEDEN_ANULAR.includes(user.id_rol)) return false; 
+    return caso.id_estado === ESTADO_ANULADO_ID;
   }
 
   claseEstado(caso: Caso): string {
@@ -218,10 +229,6 @@ export class CasoList implements OnInit {
 
   editarCaso(caso: Caso): void {
     this.router.navigate(['/casos', caso.id_casi_accidente, 'editar']);
-  }
-
-  puedeReactivar(caso: Caso): boolean {
-    return caso.id_estado === ESTADO_ANULADO_ID;
   }
 
   reactivar(caso: Caso): void {
