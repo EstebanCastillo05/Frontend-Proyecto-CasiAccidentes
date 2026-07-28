@@ -46,6 +46,26 @@ export class Menu implements OnInit {
   private readonly casoService = inject(CasoService);
   
   readonly badgeAcciones = signal<number>(0);
+  readonly rolUsuario = computed(() => {
+    const user = this.authService.currentUser();
+
+    switch (user?.id_rol) {
+      case ROL_ADMINISTRADOR:
+        return 'Administrador';
+      case ROL_BRIGADA:
+        return 'Brigada';
+      case ROL_PRL_CONTRATISTA:
+        return 'PRL Contratista';
+      case ROL_RESPONSABLE_PROCESO:
+        return 'Responsable de proceso';
+      case ROL_GESTOR_SYMA:
+        return 'Gestor SYMA';
+      case ROL_GESTION_CONTROL_SYMA:
+        return 'Gestion y Control SYMA';
+      default:
+        return 'Usuario';
+    }
+  });
 
   private readonly allMenuItems: MenuItem[] = [
     { label: 'Dashboard', route: '/dashboard', icon: 'dashboard', rolesPermitidos: TODOS },

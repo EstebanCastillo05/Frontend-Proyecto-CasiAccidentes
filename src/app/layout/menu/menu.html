@@ -2,6 +2,11 @@
   <mat-sidenav #sidenav mode="over" class="mobile-sidebar">
     @if (!isLoginPage() && !esVisitantePublico()) {
       <mat-nav-list>
+        <div class="mobile-user-role">
+          <span>Rol</span>
+          <strong>{{ rolUsuario() }}</strong>
+        </div>
+
         <!-- Enlaces del Menú normal -->
         @for (item of menuItems(); track item.route) {
           <a mat-list-item [routerLink]="item.route" routerLinkActive="activo" (click)="sidenav.close()">
@@ -45,6 +50,11 @@
 
           <!-- CONTENEDOR DERECHO: Solo Botón de Salir -->
           <div class="nav-actions-right">
+            <span class="role-pill">
+              <mat-icon>badge</mat-icon>
+              <span>{{ rolUsuario() }}</span>
+            </span>
+
             <button mat-button class="user-button" type="button" (click)="logout()">
               <mat-icon>logout</mat-icon>
               <span>Cerrar Sesion</span>
