@@ -26,7 +26,7 @@ import {
   ROL_RESPONSABLE_PROCESO, ROL_GESTOR_SYMA, ROL_GESTION_CONTROL_SYMA,
 } from '../../core/auth/roles.constants';
 
-const ESTADOS_EDITABLES = [5, 7, 8, 9, 10];
+const ESTADOS_EDITABLES = [7, 8, 9, 10];
 const ESTADO_ANULADO_ID = 14;
 const ESTADOS_CERRADOS = [12, 13];
 
@@ -170,13 +170,18 @@ export class CasoList implements OnInit {
   puedeEditar(caso: Caso): boolean {
     const user = this.authService.currentUser();
     if (!user || !ROLES_PUEDEN_EDITAR.includes(user.id_rol)) return false;
-    return ESTADOS_EDITABLES.includes(caso.id_estado ?? 0);
+    const estado = caso.id_estado ?? 0;
+    const estadoNombre = (caso.estados?.nombre || '').toLowerCase();
+    if (estado === 5 || estadoNombre.includes('rechazado')) return false;
+    return ESTADOS_EDITABLES.includes(estado);
   }
 
   puedeAnular(caso: Caso): boolean {
     const user = this.authService.currentUser();
     if (!user || !ROLES_PUEDEN_ANULAR.includes(user.id_rol)) return false;
     const estado = caso.id_estado ?? 0;
+    const estadoNombre = (caso.estados?.nombre || '').toLowerCase();
+    if (estado === 5 || estadoNombre.includes('rechazado')) return false;
     return estado !== ESTADO_ANULADO_ID && !ESTADOS_CERRADOS.includes(estado);
   }
 

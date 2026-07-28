@@ -129,4 +129,26 @@ export class CasoService {
       `${API_BASE_URL}/casos/bandeja/conteo`
     );
   }
+
+  gestionarResponsable(
+    id: number, 
+    accion: 'AVANZAR' | 'RECHAZAR' | 'ENVIAR_CIERRE' | 'ENVIAR_ACCIONES', 
+    motivo?: string
+  ): Observable<any> {
+    return this.http.patch(`${API_BASE_URL}/casos/${id}/responsable`, { accion, motivo });
+  }
+
+  gestionarSyma(id: number, aprobado: boolean, motivo?: string): Observable<any> {
+    return this.http.patch(`${API_BASE_URL}/casos/${id}/syma`, { aprobado, motivo });
+  }
+
+  gestionarPrl(id: number, motivo?: string): Observable<any> {
+    return this.http.patch(`${API_BASE_URL}/casos/${id}/prl`, { motivo });
+  }
+
+  getAccionesCorrectivas(): Observable<Caso[]> {
+    return this.http.get<any>(`${API_BASE_URL}/casos/acciones-correctivas`).pipe(
+      map((response) => (Array.isArray(response) ? response : (response?.data || [])))
+    );
+  }
 }

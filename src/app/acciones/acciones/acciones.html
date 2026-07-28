@@ -1,0 +1,64 @@
+<div class="acciones-container">
+  <mat-card class="acciones-card">
+    <div class="card-header-custom">
+      <div class="header-icon-container">
+        <mat-icon class="header-icon">task_alt</mat-icon>
+      </div>
+      <div>
+        <h2>Acciones Correctivas y Evidencias</h2>
+        <p class="subtitulo">Gestiona los casos que requieren la subida de evidencias o acciones correctivas.</p>
+      </div>
+    </div>
+    <mat-divider></mat-divider>
+    <mat-card-content class="card-content-custom">
+      @if (isLoading()) {
+        <div class="loading-container">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+      } @else if (accionesList().length === 0) {
+        <div class="empty-state">
+          <mat-icon>check_circle_outline</mat-icon>
+          <p>No hay casos pendientes de acciones correctivas o evidencias.</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table mat-table [dataSource]="accionesList()" class="mat-elevation-z0">
+            <!-- Número de Caso -->
+            <ng-container matColumnDef="numero_caso">
+              <th mat-header-cell *matHeaderCellDef> N° Caso </th>
+              <td mat-cell *matCellDef="let caso"> <strong>{{ caso.numero_caso }}</strong> </td>
+            </ng-container>
+
+            <!-- Título -->
+            <ng-container matColumnDef="titulo">
+              <th mat-header-cell *matHeaderCellDef> Título </th>
+              <td mat-cell *matCellDef="let caso"> {{ caso.titulo }} </td>
+            </ng-container>
+
+            <!-- Estado -->
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef> Estado </th>
+              <td mat-cell *matCellDef="let caso">
+                <span class="badge-estado">{{ caso.estados?.nombre }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Acciones -->
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef class="text-right"> Gestión </th>
+              <td mat-cell *matCellDef="let caso" class="text-right">
+                <button mat-flat-button color="primary" (click)="verCaso(caso.id_casi_accidente)">
+                  <mat-icon>visibility</mat-icon>
+                  Ver y Gestionar
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -2,12 +2,20 @@
   <mat-sidenav #sidenav mode="over" class="mobile-sidebar">
     @if (!isLoginPage() && !esVisitantePublico()) {
       <mat-nav-list>
+        <!-- Enlaces del Menú normal -->
         @for (item of menuItems(); track item.route) {
           <a mat-list-item [routerLink]="item.route" routerLinkActive="activo" (click)="sidenav.close()">
             <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
             <span matListItemTitle>{{ item.label }}</span>
+            
+            @if (item.route === '/acciones' && badgeAcciones() > 0) {
+              <span class="custom-badge red-badge">{{ badgeAcciones() }}</span>
+            }
           </a>
         }
+
+        <mat-divider></mat-divider>
+
         <button mat-list-item type="button" (click)="logout(); sidenav.close()">
           <mat-icon matListItemIcon>logout</mat-icon>
           <span matListItemTitle>Salir</span>
@@ -27,24 +35,31 @@
               <a class="nav-link" [routerLink]="item.route" routerLinkActive="activo">
                 <mat-icon>{{ item.icon }}</mat-icon>
                 <span>{{ item.label }}</span>
+
+                @if (item.route === '/acciones' && badgeAcciones() > 0) {
+                  <span class="custom-badge red-badge">{{ badgeAcciones() }}</span>
+                }
               </a>
             }
           </div>
 
-          <button mat-button class="user-button" type="button" (click)="logout()">
-            <mat-icon>logout</mat-icon>
-            <span>Salir</span>
-          </button>
+          <!-- CONTENEDOR DERECHO: Solo Botón de Salir -->
+          <div class="nav-actions-right">
+            <button mat-button class="user-button" type="button" (click)="logout()">
+              <mat-icon>logout</mat-icon>
+              <span>Salir</span>
+            </button>
+          </div>
 
           <button mat-icon-button class="btn-mobile-menu" (click)="sidenav.toggle()">
             <mat-icon>menu</mat-icon>
           </button>
-          } @else {
-            <button mat-button class="login-button" routerLink="/login">
-              <mat-icon>login</mat-icon>
-              <span>Iniciar sesión</span>
-            </button>
-          }
+        } @else {
+          <button mat-button class="login-button" routerLink="/login">
+            <mat-icon>login</mat-icon>
+            <span>Iniciar sesión</span>
+          </button>
+        }
       </nav>
     }
 
@@ -52,4 +67,4 @@
       <router-outlet></router-outlet>
     </main>
   </mat-sidenav-content>
-</mat-sidenav-container> 
+</mat-sidenav-container>

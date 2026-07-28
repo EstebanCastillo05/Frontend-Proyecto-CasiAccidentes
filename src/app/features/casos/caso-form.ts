@@ -19,9 +19,13 @@ import { DocumentoListComponent } from '../documentos/documento-list/documento-l
 import { DocumentoUploadComponent } from '../documentos/documento-upload/documento-upload';
 import { MotivoDialogComponent } from '../../shared/components/motivo-dialog/motivo-dialog';
 import { CasoTimelineComponent, HistorialEstadoItem } from './components/caso-timeline/caso-timeline';
-import { MatBadgeModule } from '@angular/material/badge';
-
-const ESTADOS_EDITABLES = [5, 7, 8, 9, 10];
+import { AuthService } from '../../core/auth/auth.service';
+import {
+  ROL_RESPONSABLE_PROCESO,
+  ROL_PRL_CONTRATISTA,
+  ROL_GESTOR_SYMA,
+  ROL_GESTION_CONTROL_SYMA,
+} from '../../core/auth/roles.constants';
 
 @Component({
   selector: 'app-caso-form',
@@ -52,6 +56,7 @@ export class CasoForm implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
+  private readonly authService = inject(AuthService);
 
   readonly filteredBrigadas = signal<Brigada[]>([]);
   readonly procesos = signal<Catalogo[]>([]);
@@ -68,21 +73,57 @@ export class CasoForm implements OnInit {
   readonly mostrarSeccionDocumentos = signal(false);
   readonly documentoList = viewChild(DocumentoListComponent);
 
-  // Señal para alimentar la línea de tiempo con la trazabilidad del backend
   readonly historialCaso = signal<HistorialEstadoItem[]>([]);
-
   readonly casoIdParaDocumentos = computed(() => this.savedCaso()?.id_casi_accidente ?? this.casoId() ?? null);
 
-  // Control de estados para la UI condicional
   readonly casoActual = signal<Caso | null>(null);
   readonly esNuevo = computed(() => this.casoActual()?.id_estado === 1);
-  readonly esEvaluado = computed(() => {
+  
+  // Bloquea el formulario si está cerrado, anulado o rechazado (ID 5 o texto que incluya 'rechazado')
+  readonly esBloqueado = computed(() => {
     const estado = this.casoActual()?.id_estado ?? 0;
-    return [2, 3, 4, 7, 8, 9, 10, 11].includes(estado);
+    const estadoNombre = (this.casoActual()?.estados?.nombre || '').toLowerCase();
+    return [12, 13, 14].includes(estado) || estado === 5 || estadoNombre.includes('rechazado');
   });
-  readonly esCerrado = computed(() => {
-    const estado = this.casoActual()?.id_estado ?? 0;
-    return [12, 13, 14].includes(estado);
+
+  // Señales específicas para el Responsable de Proceso
+  readonly esResponsableRevisionInicial = computed(() => {
+    const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
+    const user = this.authService.currentUser();
+    return user?.id_rol === ROL_RESPONSABLE_PROCESO && estado.includes('pendiente de revision del responsable');
+  });
+
+  readonly esResponsableEnviarPrl = computed(() => {
+    const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
+    const user = this.authService.currentUser();
+    return user?.id_rol === ROL_RESPONSABLE_PROCESO && (estado.includes('aceptado') || estado.includes('procede'));
+  });
+
+  readonly esResponsablePostDivulgacion = computed(() => {
+    const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
+    const user = this.authService.currentUser();
+    return user?.id_rol === ROL_RESPONSABLE_PROCESO && (estado.includes('divulgacion') || estado.includes('acciones') || estado.includes('gestion') || estado.includes('syma'));
+  });
+
+  // Señales para el PRL
+  readonly esPrlDivulgacion = computed(() => {
+    const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
+    const user = this.authService.currentUser();
+    return user?.id_rol === ROL_PRL_CONTRATISTA && estado.includes('pendiente de formato de divulgacion');
+  });
+
+  readonly esPrlEvidencias = computed(() => {
+    const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
+    const user = this.authService.currentUser();
+    return user?.id_rol === ROL_PRL_CONTRATISTA && (estado.includes('pendiente de evidencias') || estado.includes('acciones correctivas'));
+  });
+
+  // Señal para SYMA
+  readonly esSymaFase = computed(() => {
+    const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
+    const user = this.authService.currentUser();
+    return (user?.id_rol === ROL_GESTOR_SYMA || user?.id_rol === ROL_GESTION_CONTROL_SYMA) && 
+           (estado.includes('syma') || estado.includes('evidencias'));
   });
 
   readonly form = this.formBuilder.nonNullable.group({
@@ -136,16 +177,15 @@ export class CasoForm implements OnInit {
       next: (caso) => {
         this.casoActual.set(caso);
         
-        // Mapeo del historial para la línea de tiempo
         if (caso.historial_estados && Array.isArray(caso.historial_estados)) {
           this.historialCaso.set(caso.historial_estados);
         }
 
-        if (this.esCerrado()) {
+        if (this.esBloqueado()) {
           this.isLoading.set(false);
           this.form.disable();
           this.formBloqueado.set(true);
-          this.errorMessage.set(`El caso se encuentra cerrado o anulado (${caso.estados?.nombre})`);
+          this.errorMessage.set(`El expediente se encuentra en modo de solo lectura (${caso.estados?.nombre})`);
           return;
         }
 
@@ -210,60 +250,139 @@ export class CasoForm implements OnInit {
     return this.procesos().filter((p) => (p.nombre || '').toLowerCase().includes(texto));
   }
 
-  evaluarCaso(): void {
+  marcarProcedencia(procede: boolean): void {
+    const id = this.casoId();
+    if (!id) return;
+
+    if (!procede) {
+      const dialogRef = this.dialog.open(MotivoDialogComponent, {
+        width: '450px',
+        data: {
+          titulo: 'Caso No Procede',
+          subtitulo: 'Ingresa el motivo por el cual este casi accidente no procede:',
+        },
+      });
+
+      dialogRef.afterClosed().subscribe((motivo) => {
+        if (!motivo) return;
+        this.ejecutarValidacionProcedencia(false, motivo);
+      });
+    } else {
+      this.ejecutarValidacionProcedencia(true);
+    }
+  }
+
+  private ejecutarValidacionProcedencia(procede: boolean, motivo?: string): void {
     const id = this.casoId();
     if (!id) return;
 
     this.isSaving.set(true);
     this.errorMessage.set('');
 
-    this.casoService.evaluarCaso(id).subscribe({
+    this.casoService.validarProcedencia(id, procede, motivo).subscribe({
       next: () => {
         this.isSaving.set(false);
-        this.router.navigate(['/casos'], { state: { feedback: 'Caso evaluado correctamente' } });
+        const mensaje = procede ? 'Caso validado como procedente' : 'Caso marcado como no procedente';
+        this.router.navigate(['/casos'], { state: { feedback: mensaje } });
       },
       error: (error) => {
         this.isSaving.set(false);
-        this.errorMessage.set(error.error?.message || 'No se pudo evaluar el caso');
+        this.errorMessage.set(error.error?.message || 'No se pudo procesar la validación');
       },
     });
   }
 
-  asignarCorreccion(): void {
+  enviarResponsable(): void {
     const id = this.casoId();
     if (!id) return;
 
-    this.router.navigate(['/casos', id, 'correcciones']);
-  }
+    this.isSaving.set(true);
+    this.errorMessage.set('');
 
-  cerrarCaso(): void {
-    const id = this.casoId();
-    if (!id) return;
-
-    const dialogRef = this.dialog.open(MotivoDialogComponent, {
-      width: '450px',
-      data: {
-        titulo: 'Cierre Formal de Caso',
-        subtitulo: 'Por favor, ingresa el motivo y las observaciones obligatorias para realizar el cierre formal:',
+    this.casoService.gestionarResponsable(id, 'AVANZAR').subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.router.navigate(['/casos'], { state: { feedback: 'Caso gestionado por el responsable exitosamente' } });
+      },
+      error: (err) => {
+        this.isSaving.set(false);
+        this.errorMessage.set(err.error?.message || 'Error al procesar la gestión del responsable');
       },
     });
+  }
 
-    dialogRef.afterClosed().subscribe((motivo) => {
-      if (!motivo) return;
+  enviarResponsableAccion(accion: 'ENVIAR_CIERRE' | 'ENVIAR_ACCIONES'): void {
+    const id = this.casoId();
+    if (!id) return;
 
-      this.isSaving.set(true);
-      this.errorMessage.set('');
+    this.isSaving.set(true);
+    this.errorMessage.set('');
 
-      this.casoService.cerrarCaso(id, motivo).subscribe({
-        next: () => {
-          this.isSaving.set(false);
-          this.router.navigate(['/casos'], { state: { feedback: 'Caso cerrado formalmente con éxito' } });
-        },
-        error: (error) => {
-          this.isSaving.set(false);
-          this.errorMessage.set(error.error?.message || 'No se pudo cerrar el caso');
+    this.casoService.gestionarResponsable(id, accion).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.router.navigate(['/casos'], { state: { feedback: 'Caso derivado correctamente por el responsable' } });
+      },
+      error: (err) => {
+        this.isSaving.set(false);
+        this.errorMessage.set(err.error?.message || 'Error al derivar el caso');
+      },
+    });
+  }
+
+  enviarPrlAResponsable(): void {
+    const id = this.casoId();
+    if (!id) return;
+
+    this.isSaving.set(true);
+    this.errorMessage.set('');
+
+    this.casoService.gestionarPrl(id).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.router.navigate(['/casos'], { state: { feedback: 'Caso devuelto al responsable con éxito' } });
+      },
+      error: (err) => {
+        this.isSaving.set(false);
+        this.errorMessage.set(err.error?.message || 'Error al enviar el caso al responsable');
+      },
+    });
+  }
+
+  ejecutarSyma(aprobado: boolean): void {
+    const id = this.casoId();
+    if (!id) return;
+
+    if (!aprobado) {
+      const dialogRef = this.dialog.open(MotivoDialogComponent, {
+        width: '450px',
+        data: {
+          titulo: 'Gestión SYMA',
+          subtitulo: 'Ingresa el motivo de rechazo o devolución por parte de SYMA:',
         },
       });
+      dialogRef.afterClosed().subscribe((motivo) => {
+        if (!motivo) return;
+        this.enviarSymaBackend(id, false, motivo);
+      });
+    } else {
+      this.enviarSymaBackend(id, true);
+    }
+  }
+
+  private enviarSymaBackend(id: number, aprobado: boolean, motivo?: string): void {
+    this.isSaving.set(true);
+    this.errorMessage.set('');
+
+    this.casoService.gestionarSyma(id, aprobado, motivo).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        this.router.navigate(['/casos'], { state: { feedback: 'Gestión SYMA completada correctamente' } });
+      },
+      error: (err) => {
+        this.isSaving.set(false);
+        this.errorMessage.set(err.error?.message || 'Error en la gestión SYMA');
+      },
     });
   }
 
@@ -305,14 +424,6 @@ export class CasoForm implements OnInit {
     });
   }
 
-  irASubirFormato(): void {
-    this.mostrarSeccionDocumentos.set(true);
-  }
-
-  onDocumentoSubido(): void {
-    this.documentoList()?.reload();
-  }
-
   irABandeja(): void {
     this.router.navigateByUrl('/casos');
   }
@@ -332,46 +443,7 @@ export class CasoForm implements OnInit {
     });
   }
 
-  marcarProcedencia(procede: boolean): void {
-    const id = this.casoId();
-    if (!id) return;
-
-    if (!procede) {
-      // Si no procede, abrimos el diálogo para pedir el motivo obligatorio
-      const dialogRef = this.dialog.open(MotivoDialogComponent, {
-        width: '450px',
-        data: {
-          titulo: 'Caso No Procede',
-          subtitulo: 'Ingresa el motivo por el cual este casi accidente no procede:',
-        },
-      });
-
-      dialogRef.afterClosed().subscribe((motivo) => {
-        if (!motivo) return;
-        this.ejecutarValidacionProcedencia(false, motivo);
-      });
-    } else {
-      this.ejecutarValidacionProcedencia(true);
-    }
-  }
-
-  private ejecutarValidacionProcedencia(procede: boolean, motivo?: string): void {
-    const id = this.casoId();
-    if (!id) return;
-
-    this.isSaving.set(true);
-    this.errorMessage.set('');
-
-    this.casoService.validarProcedencia(id, procede, motivo).subscribe({
-      next: () => {
-        this.isSaving.set(false);
-        const mensaje = procede ? 'Caso validado como procedente' : 'Caso marcado como no procedente';
-        this.router.navigate(['/casos'], { state: { feedback: mensaje } });
-      },
-      error: (error) => {
-        this.isSaving.set(false);
-        this.errorMessage.set(error.error?.message || 'No se pudo procesar la validación');
-      },
-    });
+  onDocumentoSubido(): void {
+    this.documentoList()?.reload();
   }
 }

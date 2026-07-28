@@ -1,17 +1,55 @@
+/* Contenedor estándar para creación (centrado) */
 .caso-form-container {
   max-width: 680px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
 
+/* Contenedor optimizado en modo edición (Diseño de Dos Columnas profesional) */
+.caso-form-container.layout-edicion {
+  max-width: 1550px;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+/* Columna Izquierda: Contiene formulario y archivos */
+.columna-principal {
+  flex: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+/* Columna Derecha: Panel lateral flotante con scroll independiente para la trazabilidad */
+.columna-timeline {
+  flex: 1;
+  position: sticky;
+  top: 1.5rem;
+  min-width: 0;
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  background: transparent;
+}
+
+/* Utilidades generales de diseño */
+.documentos-container-inline {
+  width: 100%;
+}
+
 .form-card {
   overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .form-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   padding: 1.5rem 1.5rem 1rem;
 }
 
@@ -21,8 +59,8 @@
   justify-content: center;
   background: #fff7ed;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
 }
 
@@ -36,6 +74,7 @@
 .form-header h2 {
   margin: 0 0 0.25rem;
   font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .subtitulo {
@@ -70,51 +109,61 @@
 .loading-container {
   display: flex;
   justify-content: center;
-  padding: 2rem;
+  padding: 3rem;
 }
 
 .error-message {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   color: #b3261e;
   background: #fdecea;
-  padding: 0.6rem 0.85rem;
-  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
   font-size: 0.875rem;
   margin: 0;
 }
 
 .acciones-form {
   display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
   justify-content: flex-end;
-  padding-bottom: 0.5rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  width: 100%;
 }
 
 .acciones-form button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.acciones-form button mat-spinner {
-  display: inline-block;
+  gap: 8px;
+  padding: 10px 20px;
+  min-height: 42px;
+  border-radius: 8px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  transition: all 0.2s ease;
 }
 
 .confirmacion-card {
   text-align: center;
-  padding: 2rem 1rem;
+  padding: 2.5rem 1.5rem;
+  border-radius: 12px;
 }
 
 .icono-exito {
   color: #2e7d32;
-  font-size: 52px;
-  width: 52px;
-  height: 52px;
+  font-size: 56px;
+  width: 56px;
+  height: 56px;
 }
 
 .numero-caso {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #d97706;
   margin: 0.5rem 0 0;
@@ -123,6 +172,7 @@
 .titulo-caso {
   margin: 0.25rem 0 0;
   font-size: 1rem;
+  font-weight: 500;
 }
 
 .texto-secundario {
@@ -138,56 +188,33 @@
   margin-top: 1.75rem;
 }
 
-.documentos-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1.25rem;
-  text-align: left;
-}
-
 .documentos-title {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .documentos-title h3 {
   margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
-.documentos-shell {
-  margin: 1.25rem auto 0;
-  padding: 0.25rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  box-shadow: none;
+.documentos-card {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.documentos-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  text-align: left;
-}
-
-.documentos-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.documentos-title h3 {
-  margin: 0;
-}
-
-.documentos-container{
-    max-width:1200px;
-    margin:2rem auto;
-    padding:0 1rem;
-}
-
-.documentos-card{
-    width:100%;
-    border-radius:16px;
+/* Diseño responsivo para tablets y pantallas compactas */
+@media (max-width: 1100px) {
+  .caso-form-container.layout-edicion {
+    flex-direction: column;
+  }
+  .columna-timeline {
+    position: static;
+    max-height: none;
+    width: 100%;
+  }
 }
