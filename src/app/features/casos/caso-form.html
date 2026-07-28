@@ -155,16 +155,16 @@
 
                     @if (esResponsableEnviarPrl()) {
                       <button mat-flat-button color="primary" type="button" (click)="enviarResponsable()" [disabled]="isSaving()">
-                        <mat-icon>assignment</mat-icon> Enviar a PRL (Divulgación)
+                        <mat-icon>assignment</mat-icon> Solicitar formato de divulgacion a PRL
                       </button>
                     }
 
                     @if (esResponsablePostDivulgacion()) {
-                      <button mat-flat-button color="primary" type="button" (click)="enviarResponsableAccion('ENVIAR_CIERRE')" [disabled]="isSaving()">
-                        <mat-icon>task_alt</mat-icon> Enviar a SYMA (Cierre)
+                      <button mat-flat-button color="primary" type="button" (click)="enviarResponsableAccion('CERRAR_SIN_ACCIONES')" [disabled]="isSaving()">
+                        <mat-icon>check_circle</mat-icon> Aprobar sin acciones
                       </button>
                       <button mat-flat-button color="accent" type="button" (click)="enviarResponsableAccion('ENVIAR_ACCIONES')" [disabled]="isSaving()">
-                        <mat-icon>build</mat-icon> Enviar a PRL (Acciones)
+                        <mat-icon>build</mat-icon> Solicitar acciones correctivas a PRL
                       </button>
                     }
 
@@ -182,16 +182,18 @@
 
                     @if (esSymaFase()) {
                       <button mat-flat-button color="primary" type="button" (click)="ejecutarSyma(true)" [disabled]="isSaving()">
-                        <mat-icon>verified</mat-icon> Aprobar y Cerrar
+                        <mat-icon>verified</mat-icon> {{ esSymaRevisionEvidencias() ? 'Cerrar acciones de casi accidente' : 'Aprobar y Enviar' }}
                       </button>
                       <button mat-flat-button color="warn" type="button" (click)="ejecutarSyma(false)" [disabled]="isSaving()">
-                        <mat-icon>block</mat-icon> Rechazar
+                        <mat-icon>block</mat-icon> {{ esSymaRevisionEvidencias() ? 'Rechazar y enviar a PRL' : 'Rechazar' }}
                       </button>
                     }
                     
-                    <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">
-                      @if (isSaving()) { <mat-spinner diameter="20"></mat-spinner> } @else { Guardar Cambios }
-                    </button>
+                    @if (!esResponsableEnviarPrl() && !esResponsablePostDivulgacion()) {
+                      <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">
+                        @if (isSaving()) { <mat-spinner diameter="20"></mat-spinner> } @else { Guardar Cambios }
+                      </button>
+                    }
                   }
                 } @else {
                   <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">

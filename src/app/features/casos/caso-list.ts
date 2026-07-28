@@ -26,7 +26,7 @@ import {
   ROL_RESPONSABLE_PROCESO, ROL_GESTOR_SYMA, ROL_GESTION_CONTROL_SYMA,
 } from '../../core/auth/roles.constants';
 
-const ESTADOS_EDITABLES = [7, 8, 9, 10];
+const ESTADOS_EDITABLES = [3, 7, 8, 9, 10];
 const ESTADO_ANULADO_ID = 14;
 const ESTADOS_CERRADOS = [12, 13];
 

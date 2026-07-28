@@ -132,7 +132,7 @@ export class CasoService {
 
   gestionarResponsable(
     id: number, 
-    accion: 'AVANZAR' | 'RECHAZAR' | 'ENVIAR_CIERRE' | 'ENVIAR_ACCIONES', 
+    accion: 'AVANZAR' | 'RECHAZAR' | 'ENVIAR_CIERRE' | 'ENVIAR_ACCIONES' | 'CERRAR_SIN_ACCIONES', 
     motivo?: string
   ): Observable<any> {
     return this.http.patch(`${API_BASE_URL}/casos/${id}/responsable`, { accion, motivo });

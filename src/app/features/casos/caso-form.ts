@@ -88,21 +88,30 @@ export class CasoForm implements OnInit {
 
   // Señales específicas para el Responsable de Proceso
   readonly esResponsableRevisionInicial = computed(() => {
+    const estadoId = this.casoActual()?.id_estado ?? 0;
     const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
     const user = this.authService.currentUser();
-    return user?.id_rol === ROL_RESPONSABLE_PROCESO && estado.includes('pendiente de revision del responsable');
+    return user?.id_rol === ROL_RESPONSABLE_PROCESO &&
+      estadoId === 3 &&
+      estado.includes('pendiente de revision del responsable');
   });
 
   readonly esResponsableEnviarPrl = computed(() => {
+    const estadoId = this.casoActual()?.id_estado ?? 0;
     const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
     const user = this.authService.currentUser();
-    return user?.id_rol === ROL_RESPONSABLE_PROCESO && (estado.includes('aceptado') || estado.includes('procede'));
+    return user?.id_rol === ROL_RESPONSABLE_PROCESO &&
+      (estadoId === 6 || estado.includes('aceptado') || estado.includes('procede')) &&
+      !this.tieneAprobacionSymaDivulgacion();
   });
 
   readonly esResponsablePostDivulgacion = computed(() => {
+    const estadoId = this.casoActual()?.id_estado ?? 0;
     const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
     const user = this.authService.currentUser();
-    return user?.id_rol === ROL_RESPONSABLE_PROCESO && (estado.includes('divulgacion') || estado.includes('acciones') || estado.includes('gestion') || estado.includes('syma'));
+    return user?.id_rol === ROL_RESPONSABLE_PROCESO &&
+      (estadoId === 6 || estado.includes('aceptado') || estado.includes('procede')) &&
+      this.tieneAprobacionSymaDivulgacion();
   });
 
   // Señales para el PRL
@@ -124,6 +133,12 @@ export class CasoForm implements OnInit {
     const user = this.authService.currentUser();
     return (user?.id_rol === ROL_GESTOR_SYMA || user?.id_rol === ROL_GESTION_CONTROL_SYMA) && 
            (estado.includes('syma') || estado.includes('evidencias'));
+  });
+
+  readonly esSymaRevisionEvidencias = computed(() => {
+    const estadoId = this.casoActual()?.id_estado ?? 0;
+    const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
+    return estadoId === 11 || estado.includes('evidencias en revision');
   });
 
   readonly form = this.formBuilder.nonNullable.group({
@@ -311,7 +326,7 @@ export class CasoForm implements OnInit {
     });
   }
 
-  enviarResponsableAccion(accion: 'ENVIAR_CIERRE' | 'ENVIAR_ACCIONES'): void {
+  enviarResponsableAccion(accion: 'ENVIAR_CIERRE' | 'ENVIAR_ACCIONES' | 'CERRAR_SIN_ACCIONES'): void {
     const id = this.casoId();
     if (!id) return;
 
@@ -321,7 +336,11 @@ export class CasoForm implements OnInit {
     this.casoService.gestionarResponsable(id, accion).subscribe({
       next: () => {
         this.isSaving.set(false);
-        this.router.navigate(['/casos'], { state: { feedback: 'Caso derivado correctamente por el responsable' } });
+        const feedback =
+          accion === 'CERRAR_SIN_ACCIONES'
+            ? 'Caso cerrado sin acciones correctamente'
+            : 'Caso derivado correctamente por el responsable';
+        this.router.navigate(['/casos'], { state: { feedback } });
       },
       error: (err) => {
         this.isSaving.set(false);
@@ -445,5 +464,22 @@ export class CasoForm implements OnInit {
 
   onDocumentoSubido(): void {
     this.documentoList()?.reload();
+  }
+
+  private tieneAprobacionSymaDivulgacion(): boolean {
+    let prlEnvioFormato = false;
+    const normalizar = (texto: string) =>
+      texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    return this.historialCaso().some((item: any) => {
+      const accion = normalizar(item.accion || '');
+      const estadoOrigen = normalizar(item.estado_origen || '');
+
+      if (accion.includes('prl_enviar_responsable') && estadoOrigen.includes('formato de divulgacion')) {
+        prlEnvioFormato = true;
+      }
+
+      return prlEnvioFormato && accion.includes('syma_aprobar_divulgacion');
+    });
   }
 }

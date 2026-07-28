@@ -12,7 +12,6 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { DecimalPipe } from '@angular/common';
 import { HttpEventType } from '@angular/common/http';
 import { DocumentoService } from '../../../core/documentos/documento.service';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-documento-upload',
@@ -40,7 +39,6 @@ export class DocumentoUploadComponent {
   private readonly documentoService = inject(DocumentoService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
-  private readonly router = inject(Router);
 
   // Cambiado a un arreglo de archivos para soportar múltiples selecciones
   readonly selectedFiles = signal<File[]>([]);
@@ -145,14 +143,6 @@ export class DocumentoUploadComponent {
           });
           this.resetForm();
           this.documentoSubido.emit();
-
-          setTimeout(() => {
-            this.router.navigate(['/dashboard'], {
-              state: {
-                feedback: 'Documentos cargados correctamente.'
-              }
-            });
-          }, 2000);
         }
       },
       error: (error) => {
