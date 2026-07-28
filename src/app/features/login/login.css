@@ -115,6 +115,23 @@ h1 {
   margin: 0 auto;
 }
 
+.dashboard-button {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 0;
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.dashboard-button mat-icon {
+  margin-right: 6px;
+}
+
+.dashboard-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 @media (max-width: 480px) {
   .login-card {
     padding: 28px;

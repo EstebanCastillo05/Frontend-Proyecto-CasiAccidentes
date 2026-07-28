@@ -31,6 +31,7 @@ export class Login {
 
   readonly isLoading = signal(false);
   readonly errorMessage = signal('');
+  readonly submitted = signal(false);
   hidePassword = true;
 
   readonly form = this.formBuilder.nonNullable.group({
@@ -39,6 +40,7 @@ export class Login {
   });
 
   submit(): void {
+    this.submitted.set(true);
     console.log('🔐 Submit presionado. Estado del formulario:', {
       valid: this.form.valid,
       correo: this.form.get('correo')?.value,
@@ -73,5 +75,9 @@ export class Login {
         this.errorMessage.set(error.error?.message || 'No se pudo iniciar sesion');
       },
     });
+  }
+
+  goToDashboard(): void {
+    this.router.navigateByUrl('/');
   }
 }
