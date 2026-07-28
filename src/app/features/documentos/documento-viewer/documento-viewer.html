@@ -1,0 +1,27 @@
+<div class="viewer-shell">
+  <div class="viewer-header">
+    <div>
+      <h3>{{ documento.nombre_archivo }}</h3>
+      <p>{{ documento.descripcion }}</p>
+    </div>
+    <button mat-icon-button type="button" (click)="close()" aria-label="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  @if (isSupported) {
+    @if (isPdf) {
+      <iframe class="viewer-frame" [src]="safePreviewUrl()"></iframe>
+    } @else {
+      <div class="image-preview">
+        <img [src]="previewUrl()" alt="Vista previa" />
+      </div>
+    }
+  } @else {
+    <div class="unsupported-state">
+      <mat-icon>insert_drive_file</mat-icon>
+      <p>Este tipo de archivo no se puede previsualizar directamente.</p>
+      <button mat-flat-button color="primary" type="button" (click)="descargar()">Descargar</button>
+    </div>
+  }
+</div>

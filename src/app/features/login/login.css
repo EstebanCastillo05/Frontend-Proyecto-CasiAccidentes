@@ -82,6 +82,21 @@ h1 {
   font-size: 0.84rem;
 }
 
+.validation-errors {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px 11px;
+  background: rgba(239, 68, 68, 0.2);
+  border-left: 3px solid #ef4444;
+  color: #fecaca;
+  font-size: 0.85rem;
+}
+
+.validation-errors p {
+  margin: 0;
+}
+
 .submit-button {
   width: 100%;
   height: 48px;

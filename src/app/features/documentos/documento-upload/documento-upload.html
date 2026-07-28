@@ -1,0 +1,90 @@
+<mat-card class="upload-card">
+  <div class="upload-header">
+    <div class="upload-icon">
+      <mat-icon>cloud_upload</mat-icon>
+    </div>
+    <div>
+      <h3>Subir documentos</h3>
+      <p>Adjunta uno o varios archivos PDF, imagen o Excel de hasta 5 MB cada uno.</p>
+    </div>
+  </div>
+
+  <mat-card-content>
+    <div
+      class="dropzone"
+      [class.drag-over]="isDragOver()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+    >
+      <mat-icon class="dropzone-icon">attach_file</mat-icon>
+      <p class="dropzone-title">Arrastra y suelta los archivos aquí</p>
+      <p class="dropzone-help">o selecciona uno o más desde tu equipo</p>
+      <!-- IMPORTANTE: Atributo 'multiple' agregado aquí -->
+      <input #fileInput type="file" id="fileInput" hidden (change)="onFileSelected($event)" accept=".pdf,.png,.jpg,.jpeg,.xls,.xlsx,.csv,.xlsm" multiple />
+      <label for="fileInput" class="file-trigger">
+        <button mat-stroked-button color="primary" type="button" (click)="triggerFileInput()">Seleccionar archivos</button>
+      </label>
+    </div>
+
+    <!-- Lista de archivos seleccionados -->
+    @if (selectedFiles().length > 0) {
+      <div class="selected-files-container" style="margin: 16px 0; display: flex; flex-direction: column; gap: 8px;">
+        @for (file of selectedFiles(); track file.name; let i = $index) {
+          <div class="selected-file-item" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(0,0,0,0.03); border-radius: 4px;">
+            <div>
+              <p class="selected-file-name" style="margin: 0; font-weight: 500;">{{ file.name }}</p>
+              <p class="selected-file-size" style="margin: 0; font-size: 12px; opacity: 0.7;">{{ (file.size) / (1024 * 1024) | number: '1.0-2' }} MB</p>
+            </div>
+            <button mat-icon-button type="button" (click)="removeFile(i)" aria-label="Eliminar archivo">
+              <mat-icon color="warn">close</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="upload-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo de documento</mat-label>
+        <mat-select formControlName="idTipoDocumento">
+          @for (tipo of tiposDocumento; track tipo.value) {
+            <mat-option [value]="tipo.value">{{ tipo.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Comentario / Descripción</mat-label>
+        <textarea matInput formControlName="descripcion" rows="3" placeholder="Describe los documentos que vas a adjuntar"></textarea>
+        @if (form.controls.descripcion.hasError('required') && form.controls.descripcion.touched) {
+          <mat-error>La descripción es obligatoria</mat-error>
+        }
+      </mat-form-field>
+
+      @if (errorMessage()) {
+        <div class="error-message">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      @if (isUploading()) {
+        <div class="progress-block">
+          <mat-progress-bar mode="determinate" [value]="uploadProgress()"></mat-progress-bar>
+          <p>{{ uploadProgress() }}% cargado</p>
+        </div>
+      }
+
+      <div class="actions">
+        <button mat-flat-button color="primary" type="submit" [disabled]="isUploading() || selectedFiles().length === 0">
+          @if (isUploading()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <span>Subir documentos ({{ selectedFiles().length }})</span>
+          }
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

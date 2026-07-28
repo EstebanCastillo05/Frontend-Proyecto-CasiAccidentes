@@ -13,6 +13,10 @@
         <span>{{ activeUsersCount() }}</span>
         <small>Activos</small>
       </div>
+      <div>
+        <span>{{ brigadas().length }}</span>
+        <small>Brigadas</small>
+      </div>
     </div>
   </header>
 
@@ -169,4 +173,186 @@
       </mat-card-content>
     </mat-card>
   </div>
+
+  <section class="admin-section">
+    <header class="section-header">
+      <div>
+        <p class="eyebrow">Catalogo operativo</p>
+        <h2>Brigadas</h2>
+      </div>
+      <div class="summary-strip compact">
+        <div>
+          <span>{{ activeBrigadasCount() }}</span>
+          <small>Activas</small>
+        </div>
+      </div>
+    </header>
+
+    <div class="admin-grid">
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>{{ selectedBrigada() ? 'Editar brigada' : 'Crear brigada' }}</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <form [formGroup]="brigadaForm" (ngSubmit)="submitBrigada()" class="user-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre</mat-label>
+              <mat-icon matPrefix>groups</mat-icon>
+              <input matInput formControlName="nombre" />
+              @if (brigadaForm.controls.nombre.hasError('required')) {
+                <mat-error>El nombre es obligatorio</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Region</mat-label>
+              <mat-icon matPrefix>map</mat-icon>
+              <mat-select formControlName="id_region">
+                <mat-option [value]="0">Seleccionar region</mat-option>
+                @for (region of regiones(); track region.id_region) {
+                  <mat-option [value]="region.id_region">{{ region.nombre }}</mat-option>
+                }
+              </mat-select>
+              @if (brigadaForm.controls.id_region.hasError('min')) {
+                <mat-error>Selecciona una region</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Proceso</mat-label>
+              <mat-icon matPrefix>account_tree</mat-icon>
+              <mat-select formControlName="id_proceso">
+                <mat-option [value]="0">Seleccionar proceso</mat-option>
+                @for (proceso of procesos(); track proceso.id_proceso) {
+                  <mat-option [value]="proceso.id_proceso">{{ proceso.nombre }}</mat-option>
+                }
+              </mat-select>
+              @if (brigadaForm.controls.id_proceso.hasError('min')) {
+                <mat-error>Selecciona un proceso</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Contratista</mat-label>
+              <mat-icon matPrefix>business</mat-icon>
+              <mat-select formControlName="id_contratista">
+                <mat-option [value]="0">Seleccionar contratista</mat-option>
+                @for (contratista of contratistas(); track contratista.id_contratista) {
+                  <mat-option [value]="contratista.id_contratista">{{ contratista.nombre }}</mat-option>
+                }
+              </mat-select>
+              @if (brigadaForm.controls.id_contratista.hasError('min')) {
+                <mat-error>Selecciona un contratista</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-slide-toggle formControlName="activo">Brigada activa</mat-slide-toggle>
+
+            @if (brigadaFeedback()) {
+              <div class="feedback success">
+                <mat-icon>check_circle</mat-icon>
+                <span>{{ brigadaFeedback() }}</span>
+              </div>
+            }
+
+            @if (brigadaErrorMessage()) {
+              <div class="feedback error">
+                <mat-icon>error</mat-icon>
+                <span>{{ brigadaErrorMessage() }}</span>
+              </div>
+            }
+
+            <div class="form-actions">
+              <button mat-flat-button color="primary" type="submit" [disabled]="isSavingBrigada()">
+                @if (isSavingBrigada()) {
+                  <mat-spinner diameter="18"></mat-spinner>
+                } @else {
+                <mat-icon>{{ selectedBrigada() ? 'save' : 'add_business' }}</mat-icon>
+              }
+                <span>{{ selectedBrigada() ? 'Guardar' : 'Crear' }}</span>
+              </button>
+
+              @if (selectedBrigada()) {
+                <button mat-stroked-button type="button" (click)="resetBrigadaForm()">Cancelar</button>
+              }
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="table-card">
+        <mat-card-header>
+          <mat-card-title>Brigadas registradas</mat-card-title>
+          <mat-card-subtitle>Relacionadas con region, proceso y contratista.</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          @if (isLoading()) {
+            <div class="loading-state">
+              <mat-spinner diameter="36"></mat-spinner>
+              <span>Cargando brigadas</span>
+            </div>
+          } @else {
+            <table mat-table [dataSource]="brigadas()" class="users-table">
+              <ng-container matColumnDef="brigada">
+                <th mat-header-cell *matHeaderCellDef>Brigada</th>
+                <td mat-cell *matCellDef="let brigada">
+                  <div class="user-cell">
+                    <strong>{{ brigada.nombre }}</strong>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="region">
+                <th mat-header-cell *matHeaderCellDef>Region</th>
+                <td mat-cell *matCellDef="let brigada">{{ brigada.regiones?.nombre || 'Sin region' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="proceso">
+                <th mat-header-cell *matHeaderCellDef>Proceso</th>
+                <td mat-cell *matCellDef="let brigada">{{ brigada.procesos?.nombre || 'Sin proceso' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="contratista">
+                <th mat-header-cell *matHeaderCellDef>Contratista</th>
+                <td mat-cell *matCellDef="let brigada">{{ brigada.contratistas?.nombre || 'Sin contratista' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="estado">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let brigada">
+                  <span class="status-pill" [class.inactive]="brigada.activo === false">
+                    {{ brigada.activo === false ? 'Inactiva' : 'Activa' }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let brigada">
+                  <div class="row-actions">
+                    <button mat-icon-button type="button" aria-label="Editar brigada" (click)="editBrigada(brigada)">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      [attr.aria-label]="brigada.activo === false ? 'Activar brigada' : 'Desactivar brigada'"
+                      (click)="toggleBrigadaStatus(brigada)"
+                    >
+                      <mat-icon>{{ brigada.activo === false ? 'check_circle' : 'block' }}</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="brigadaColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: brigadaColumns"></tr>
+            </table>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </section>
 </section>

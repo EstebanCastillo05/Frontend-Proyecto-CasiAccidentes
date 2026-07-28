@@ -1,0 +1,137 @@
+.caso-list-container {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.list-header h2 {
+  margin: 0 0 0.25rem;
+}
+
+.subtitulo {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+}
+
+.filtros-card {
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.filtros-grid {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filtros-grid mat-form-field {
+  min-width: 220px;
+  flex: 1;
+}
+
+.tabla-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tabla-scroll {
+  overflow-x: auto;
+}
+
+.loading-container,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: rgba(0, 0, 0, 0.5);
+  gap: 0.5rem;
+}
+
+.empty-state mat-icon {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+}
+
+.feedback-message {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.error-message {
+  background: #fdecea;
+  color: #b3261e;
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.estado-en-proceso {
+  background: #fff7ed;
+  color: #d97706;
+}
+
+.estado-rechazado {
+  background: #fdecea;
+  color: #b3261e;
+}
+
+.estado-cerrado {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.estado-anulado {
+  background: #eeeeee;
+  color: #616161;
+}
+
+/* Movil */
+@media (max-width: 600px) {
+  .caso-list-container {
+    margin: 1rem auto;
+    padding: 0 0.5rem;
+  }
+
+  .list-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .list-header button {
+    width: 100%;
+  }
+
+  .filtros-grid {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filtros-grid mat-form-field {
+    min-width: unset;
+  }
+}

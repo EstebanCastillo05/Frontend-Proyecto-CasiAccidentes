@@ -39,8 +39,18 @@ export class Login {
   });
 
   submit(): void {
+    console.log('🔐 Submit presionado. Estado del formulario:', {
+      valid: this.form.valid,
+      correo: this.form.get('correo')?.value,
+      password: this.form.get('password')?.value,
+      correoErrors: this.form.get('correo')?.errors,
+      passwordErrors: this.form.get('password')?.errors,
+    });
+
     if (this.form.invalid) {
+      console.warn('⚠️ Formulario inválido. Mostrando errores.');
       this.form.markAllAsTouched();
+      this.errorMessage.set('Por favor completa los campos correctamente');
       return;
     }
 
@@ -49,12 +59,16 @@ export class Login {
 
     const { correo, password } = this.form.getRawValue();
 
+    console.log('📤 Enviando credenciales:', { correo });
+
     this.authService.login(correo, password).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('✅ Login exitoso:', response);
         this.isLoading.set(false);
         this.router.navigateByUrl('/admin/usuarios');
       },
       error: (error) => {
+        console.error('❌ Error en login:', error);
         this.isLoading.set(false);
         this.errorMessage.set(error.error?.message || 'No se pudo iniciar sesion');
       },
