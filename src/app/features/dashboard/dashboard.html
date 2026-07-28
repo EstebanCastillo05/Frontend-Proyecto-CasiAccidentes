@@ -17,6 +17,84 @@
     </div>
   </header>
 
+  <mat-card class="filter-card">
+    <mat-card-content>
+      <div class="filter-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Desde</mat-label>
+          <input matInput type="date" [(ngModel)]="filters.fechaInicio" name="fechaInicio">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Hasta</mat-label>
+          <input matInput type="date" [(ngModel)]="filters.fechaFin" name="fechaFin">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Resultado</mat-label>
+          <mat-select [(ngModel)]="filters.resultado" name="resultado">
+            <mat-option value="">Todos</mat-option>
+            <mat-option value="en_proceso">En proceso</mat-option>
+            <mat-option value="resueltos">Resueltos</mat-option>
+            <mat-option value="rechazados_anulados">Rechazados o anulados</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Estado</mat-label>
+          <mat-select [(ngModel)]="filters.id_estado" name="id_estado">
+            <mat-option value="">Todos</mat-option>
+            @for (estado of filterOptions()?.estados ?? []; track estado.id_estado) {
+              <mat-option [value]="estado.id_estado">{{ estado.nombre || 'Sin nombre' }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Brigada</mat-label>
+          <mat-select [(ngModel)]="filters.id_brigada" name="id_brigada">
+            <mat-option value="">Todas</mat-option>
+            @for (brigada of filterOptions()?.brigadas ?? []; track brigada.id_brigada) {
+              <mat-option [value]="brigada.id_brigada">{{ brigada.nombre || 'Sin nombre' }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Proceso</mat-label>
+          <mat-select [(ngModel)]="filters.id_proceso" name="id_proceso">
+            <mat-option value="">Todos</mat-option>
+            @for (proceso of filterOptions()?.procesos ?? []; track proceso.id_proceso) {
+              <mat-option [value]="proceso.id_proceso">{{ proceso.nombre || 'Sin nombre' }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Región</mat-label>
+          <mat-select [(ngModel)]="filters.id_region" name="id_region">
+            <mat-option value="">Todas</mat-option>
+            @for (region of filterOptions()?.regiones ?? []; track region.id_region) {
+              <mat-option [value]="region.id_region">{{ region.nombre || 'Sin nombre' }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <div class="filter-actions">
+          <button mat-flat-button color="primary" type="button" (click)="applyFilters()">
+            <mat-icon>filter_alt</mat-icon>
+            Filtrar
+          </button>
+
+          <button mat-stroked-button type="button" (click)="clearFilters()">
+            <mat-icon>filter_alt_off</mat-icon>
+            Limpiar
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
   @if (isLoading()) {
     <div class="loading-state">
       <mat-spinner diameter="42"></mat-spinner>
@@ -75,6 +153,35 @@
     }
 
     <section class="dashboard-grid">
+      <mat-card class="chart-card wide-card">
+        <mat-card-header>
+          <mat-card-title>Flujo por etapas</mat-card-title>
+          <mat-card-subtitle>Estados donde se encuentran actualmente los casos</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (stageFlow().length) {
+            <div class="stage-flow">
+              @for (item of stageFlow(); track item.id_estado ?? item.nombre) {
+                <div class="stage-step">
+                  <div class="stage-header">
+                    <span translate="no">{{ item.nombre }}</span>
+                    <strong>{{ item.total }}</strong>
+                  </div>
+                  <div class="stage-track">
+                    <span class="stage-fill" [style.width]="barWidth(item.total, maxStageFlowTotal())"></span>
+                  </div>
+                  <div class="stage-meta">
+                    <small>{{ item.porcentajeTotal }}% del total</small>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-state">Sin datos para mostrar.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
       <mat-card class="chart-card">
         <mat-card-header>
           <mat-card-title>Resultado del flujo</mat-card-title>
@@ -160,6 +267,32 @@
 
       <mat-card class="chart-card">
         <mat-card-header>
+          <mat-card-title>Casos por proceso</mat-card-title>
+          <mat-card-subtitle>Procesos con mayor volumen de casi accidentes</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (byProcess().length) {
+            <div class="bar-list">
+              @for (item of byProcess(); track item.id_proceso ?? item.nombre) {
+                <div class="bar-row">
+                  <div class="bar-label">
+                    <span translate="no">{{ item.nombre }}</span>
+                    <strong>{{ item.total }}</strong>
+                  </div>
+                  <div class="bar-track">
+                    <span class="bar-fill process" [style.width]="barWidth(item.total, maxProcessTotal())"></span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-state">Sin datos para mostrar.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="chart-card">
+        <mat-card-header>
           <mat-card-title>Acciones correctivas</mat-card-title>
           <mat-card-subtitle>Volumen por estado y avance promedio</mat-card-subtitle>
         </mat-card-header>
@@ -176,15 +309,75 @@
                     <strong>{{ item.avancePromedio }}%</strong>
                   </div>
 
-                  <div class="stacked-track">
-                    <span class="stacked-count" [style.width]="barWidth(item.total, maxCorrectiveTotal())"></span>
-                    <span class="stacked-progress" [style.width]="progressWidth(item.avancePromedio)"></span>
+                  <div class="action-metrics">
+                    <div class="metric-row">
+                      <div class="metric-label">
+                        <span>Volumen</span>
+                        <strong>{{ item.total }}</strong>
+                      </div>
+                      <div class="metric-track">
+                        <span class="metric-fill count" [style.width]="barWidth(item.total, maxCorrectiveTotal())"></span>
+                      </div>
+                    </div>
+
+                    <div class="metric-row">
+                      <div class="metric-label">
+                        <span>Avance</span>
+                        <strong>{{ item.avancePromedio }}%</strong>
+                      </div>
+                      <div class="metric-track">
+                        <span class="metric-fill progress" [style.width]="progressWidth(item.avancePromedio)"></span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               }
             </div>
           } @else {
             <p class="empty-state">Sin acciones correctivas registradas.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="chart-card wide-card">
+        <mat-card-header>
+          <mat-card-title>Reportes por mes y etapa</mat-card-title>
+          <mat-card-subtitle>Casi accidentes reportados por mes segun etapa actual</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (monthlyByStage().length) {
+            <div class="monthly-chart">
+              <div class="monthly-bars">
+                @for (month of monthlyByStage(); track month.periodo) {
+                  <div class="monthly-column">
+                    <strong>{{ month.total }}</strong>
+                    <div class="monthly-track">
+                      <div class="monthly-stack" [style.height]="monthlyBarHeight(month.total)">
+                        @for (stage of month.etapas; track stage.nombre) {
+                          <span
+                            [style.height]="monthlySegmentHeight(stage.total, month.total)"
+                            [style.background]="stageColor(stage.nombre)"
+                            [title]="stage.nombre + ': ' + stage.total"
+                          ></span>
+                        }
+                      </div>
+                    </div>
+                    <span translate="no">{{ month.mes }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="monthly-legend">
+                @for (name of monthlyStageNames(); track name) {
+                  <span>
+                    <i [style.background]="stageColor(name)"></i>
+                    {{ name }}
+                  </span>
+                }
+              </div>
+            </div>
+          } @else {
+            <p class="empty-state">Sin datos para mostrar.</p>
           }
         </mat-card-content>
       </mat-card>
