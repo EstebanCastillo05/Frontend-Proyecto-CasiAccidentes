@@ -224,14 +224,19 @@
           <button mat-stroked-button type="button" (click)="irABandeja()">
             Volver
           </button>
+
+          <!-- Botones de Validación de Procedencia para el PRL -->
           @if (esNuevo()) {
-          <button mat-flat-button color="accent" type="button" (click)="evaluarCaso()">
-            <mat-icon>
-              rate_review
-            </mat-icon>
-            Evaluar
+          <button mat-flat-button color="primary" type="button" (click)="marcarProcedencia(true)" [disabled]="isSaving()">
+            <mat-icon>check_circle</mat-icon>
+            Sí Procede
+          </button>
+          <button mat-flat-button color="warn" type="button" (click)="marcarProcedencia(false)" [disabled]="isSaving()">
+            <mat-icon>cancel</mat-icon>
+            No Procede
           </button>
           }
+
           @if (esEvaluado()) {
           <button mat-flat-button color="primary" type="button" (click)="asignarCorreccion()">
             <mat-icon>
@@ -246,6 +251,7 @@
             Cerrar Caso
           </button>
           }
+          
           @if (!esCerrado()) {
           <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">
             @if (isSaving()) {

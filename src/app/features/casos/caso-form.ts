@@ -19,6 +19,7 @@ import { DocumentoListComponent } from '../documentos/documento-list/documento-l
 import { DocumentoUploadComponent } from '../documentos/documento-upload/documento-upload';
 import { MotivoDialogComponent } from '../../shared/components/motivo-dialog/motivo-dialog';
 import { CasoTimelineComponent, HistorialEstadoItem } from './components/caso-timeline/caso-timeline';
+import { MatBadgeModule } from '@angular/material/badge';
 
 const ESTADOS_EDITABLES = [5, 7, 8, 9, 10];
 
@@ -328,6 +329,49 @@ export class CasoForm implements OnInit {
       procesoSearch: '',
       id_proceso: 0,
       id_contratista: null,
+    });
+  }
+
+  marcarProcedencia(procede: boolean): void {
+    const id = this.casoId();
+    if (!id) return;
+
+    if (!procede) {
+      // Si no procede, abrimos el diálogo para pedir el motivo obligatorio
+      const dialogRef = this.dialog.open(MotivoDialogComponent, {
+        width: '450px',
+        data: {
+          titulo: 'Caso No Procede',
+          subtitulo: 'Ingresa el motivo por el cual este casi accidente no procede:',
+        },
+      });
+
+      dialogRef.afterClosed().subscribe((motivo) => {
+        if (!motivo) return;
+        this.ejecutarValidacionProcedencia(false, motivo);
+      });
+    } else {
+      this.ejecutarValidacionProcedencia(true);
+    }
+  }
+
+  private ejecutarValidacionProcedencia(procede: boolean, motivo?: string): void {
+    const id = this.casoId();
+    if (!id) return;
+
+    this.isSaving.set(true);
+    this.errorMessage.set('');
+
+    this.casoService.validarProcedencia(id, procede, motivo).subscribe({
+      next: () => {
+        this.isSaving.set(false);
+        const mensaje = procede ? 'Caso validado como procedente' : 'Caso marcado como no procedente';
+        this.router.navigate(['/casos'], { state: { feedback: mensaje } });
+      },
+      error: (error) => {
+        this.isSaving.set(false);
+        this.errorMessage.set(error.error?.message || 'No se pudo procesar la validación');
+      },
     });
   }
 }

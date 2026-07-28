@@ -40,14 +40,15 @@ export class DocumentoUploadComponent {
   private readonly documentoService = inject(DocumentoService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly router = inject(Router);
 
-  readonly selectedFile = signal<File | null>(null);
+  // Cambiado a un arreglo de archivos para soportar múltiples selecciones
+  readonly selectedFiles = signal<File[]>([]);
   readonly isUploading = signal(false);
   readonly uploadProgress = signal(0);
   readonly errorMessage = signal('');
   readonly isDragOver = signal(false);
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
-  private readonly router = inject(Router);
 
   readonly form = this.formBuilder.nonNullable.group({
     idTipoDocumento: [1, [Validators.required]],
@@ -62,14 +63,15 @@ export class DocumentoUploadComponent {
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
-    this.handleFile(file);
+    const files = input.files ? Array.from(input.files) : [];
+    this.handleFiles(files);
   }
 
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDragOver.set(false);
-    this.handleFile(event.dataTransfer?.files?.[0] ?? null);
+    const files = event.dataTransfer?.files ? Array.from(event.dataTransfer.files) : [];
+    this.handleFiles(files);
   }
 
   onDragOver(event: DragEvent): void {
@@ -82,8 +84,15 @@ export class DocumentoUploadComponent {
     this.isDragOver.set(false);
   }
 
+  removeFile(index: number): void {
+    const current = [...this.selectedFiles()];
+    current.splice(index, 1);
+    this.selectedFiles.set(current);
+    this.errorMessage.set('');
+  }
+
   clearSelection(): void {
-    this.selectedFile.set(null);
+    this.selectedFiles.set([]);
     this.errorMessage.set('');
   }
 
@@ -92,22 +101,12 @@ export class DocumentoUploadComponent {
   }
 
   submit(): void {
-    const file = this.selectedFile();
+    const files = this.selectedFiles();
     const tipoDocumento = this.form.controls.idTipoDocumento.value;
     const descripcion = this.form.controls.descripcion.value.trim();
 
-    if (!file) {
-      this.errorMessage.set('Selecciona un archivo para cargar.');
-      return;
-    }
-
-    if (!this.isAllowedFile(file)) {
-      this.errorMessage.set('Solo se permiten archivos PDF, PNG o JPG.');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      this.errorMessage.set('El archivo no puede superar los 5 MB.');
+    if (files.length === 0) {
+      this.errorMessage.set('Selecciona al menos un archivo para cargar.');
       return;
     }
 
@@ -118,7 +117,12 @@ export class DocumentoUploadComponent {
     }
 
     const formData = new FormData();
-    formData.append('archivo', file, file.name);
+    
+    // Adjuntamos cada archivo al FormData bajo la misma clave 'archivos'
+    files.forEach((file) => {
+      formData.append('archivos', file, file.name);
+    });
+
     formData.append('idCaso', String(this.idCaso));
     formData.append('idTipoDocumento', String(tipoDocumento));
     formData.append('descripcion', descripcion);
@@ -127,7 +131,7 @@ export class DocumentoUploadComponent {
     this.uploadProgress.set(0);
     this.errorMessage.set('');
 
-    this.documentoService.subirDocumento(formData).subscribe({
+    this.documentoService.subirDocumentos(formData).subscribe({
       next: (event) => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           this.uploadProgress.set(Math.round((event.loaded / event.total) * 100));
@@ -135,8 +139,7 @@ export class DocumentoUploadComponent {
         if (event.type === HttpEventType.Response) {
           this.isUploading.set(false);
           this.uploadProgress.set(100);
-          const message =
-            event.body?.message ?? 'Documento cargado correctamente.';
+          const message = event.body?.message ?? 'Documentos cargados correctamente.';
           this.snackBar.open(message, 'Cerrar', {
             duration: 1000
           });
@@ -146,7 +149,7 @@ export class DocumentoUploadComponent {
           setTimeout(() => {
             this.router.navigate(['/dashboard'], {
               state: {
-                feedback: 'Documento cargado correctamente.'
+                feedback: 'Documentos cargados correctamente.'
               }
             });
           }, 2000);
@@ -155,34 +158,36 @@ export class DocumentoUploadComponent {
       error: (error) => {
         this.isUploading.set(false);
         this.uploadProgress.set(0);
-        const message = error?.error?.message ?? 'No se pudo cargar el documento. Inténtalo nuevamente.';
+        const message = error?.error?.message ?? 'No se pudieron cargar los documentos. Inténtalo nuevamente.';
         this.errorMessage.set(message);
         this.snackBar.open(message, 'Cerrar', { duration: 4000 });
       },
     });
   }
 
-  private handleFile(file: File | null): void {
+  private handleFiles(files: File[]): void {
     this.errorMessage.set('');
-    if (!file) {
-      return;
+    if (files.length === 0) return;
+
+    const validFiles: File[] = [];
+    for (const file of files) {
+      if (!this.isAllowedFile(file)) {
+        this.errorMessage.set(`El archivo "${file.name}" no tiene un formato permitido.`);
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        this.errorMessage.set(`El archivo "${file.name}" supera los 5 MB.`);
+        return;
+      }
+      validFiles.push(file);
     }
 
-    if (!this.isAllowedFile(file)) {
-      this.errorMessage.set('Solo se permiten archivos PDF, PNG o JPG.');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      this.errorMessage.set('El archivo no puede superar los 5 MB.');
-      return;
-    }
-
-    this.selectedFile.set(file);
+    // Acumula los archivos seleccionados
+    this.selectedFiles.set([...this.selectedFiles(), ...validFiles]);
   }
 
   private resetForm(): void {
-    this.selectedFile.set(null);
+    this.selectedFiles.set([]);
     this.form.reset({ idTipoDocumento: 1, descripcion: '' });
   }
 

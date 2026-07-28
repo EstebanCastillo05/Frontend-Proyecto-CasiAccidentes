@@ -3,7 +3,7 @@
     <div>
       <h2>{{ tituloVista() }}</h2>
       <p class="subtitulo">
-        {{ esVistaTodos() ? 'Bandeja general de todos los casi accidentes reportados' : 'Casos que requieren tu atención inmediata' }}
+        Consulta, filtra y administra el ciclo de vida de todos los casi accidentes registrados.
       </p>
     </div>
 
@@ -17,7 +17,7 @@
     </div>
   </div>
 
-  <!-- Los filtros generales se muestran siempre; en "Todos" ademas sirven para navegar el historico -->
+  <!-- Filtros generales de gestión -->
   <mat-card class="filtros-card">
     <div class="filtros-grid">
       <mat-form-field appearance="outline">
@@ -79,7 +79,7 @@
     } @else if (casos().length === 0) {
       <div class="empty-state">
         <mat-icon>inbox</mat-icon>
-        <p>{{ esVistaTodos() ? 'No hay casos que coincidan con los filtros seleccionados' : '¡Excelente! No tienes casos pendientes de revisión en tu bandeja.' }}</p>
+        <p>No hay casos registrados o que coincidan con los filtros seleccionados.</p>
       </div>
     } @else {
       <div class="tabla-scroll">

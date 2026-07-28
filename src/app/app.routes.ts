@@ -12,7 +12,7 @@ import { DocumentoListComponent } from './features/documentos/documento-list/doc
 
 export const routes: Routes = [
   { path: 'login', component: Login },
-  { path: 'reportes-publicos', component: Dashboard },   // <- movido antes del wildcard
+  { path: 'reportes-publicos', component: Dashboard },
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
   { path: 'admin', redirectTo: 'admin/usuarios', pathMatch: 'full' },
   {
@@ -22,7 +22,7 @@ export const routes: Routes = [
   { path: 'casos', component: CasoList, canActivate: [authGuard] },
   {
     path: 'casos/nuevo', component: CasoForm,
-    canActivate: [authGuard, roleGuard([ROL_ADMINISTRADOR, ROL_PRL_CONTRATISTA])],
+    canActivate: [authGuard, roleGuard([ROL_ADMINISTRADOR, ROL_BRIGADA])], // <-- Agregado ROL_BRIGADA aquí
   },
   {
     path: 'casos/:id/editar', component: CasoForm,

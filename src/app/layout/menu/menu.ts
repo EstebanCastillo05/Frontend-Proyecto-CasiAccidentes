@@ -1,10 +1,15 @@
-import { Component, computed } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatMenuModule } from '@angular/material/menu';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
+import { CasoService } from '../../core/casos/caso.service';
+import { Caso } from '../../core/casos/caso.models';
 import {
   ROL_ADMINISTRADOR, ROL_BRIGADA, ROL_PRL_CONTRATISTA,
   ROL_RESPONSABLE_PROCESO, ROL_GESTOR_SYMA, ROL_GESTION_CONTROL_SYMA,
@@ -25,11 +30,26 @@ const TODOS = [
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatSidenavModule, MatListModule, MatIconModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    RouterOutlet, 
+    RouterLink, 
+    RouterLinkActive, 
+    MatSidenavModule, 
+    MatListModule, 
+    MatIconModule, 
+    MatButtonModule, 
+    MatBadgeModule,
+    MatMenuModule
+  ],
   templateUrl: './menu.html',
   styleUrl: './menu.css',
 })
-export class Menu {
+export class Menu implements OnInit {
+  private readonly casoService = inject(CasoService);
+  
+  readonly bandejaCasos = signal<Caso[]>([]);
+
   private readonly allMenuItems: MenuItem[] = [
     { label: 'Dashboard', route: '/dashboard', icon: 'dashboard', rolesPermitidos: TODOS },
     { label: 'Gestion de Casos', route: '/casos', icon: 'folder_open', rolesPermitidos: TODOS },
@@ -54,6 +74,28 @@ export class Menu {
     readonly authService: AuthService,
     private readonly router: Router
   ) {}
+
+  ngOnInit(): void {
+    if (!this.esVisitantePublico()) {
+      this.cargarBandejaFlotante();
+    }
+  }
+
+  cargarBandejaFlotante(): void {
+    this.casoService.getBandeja({}).subscribe({
+      next: (casos) => {
+        // Filtramos estrictamente estados activos que requieran atención (ej. 1 a 11)
+        const estadosPendientes = [1, 2, 3, 4, 7, 8, 9, 10, 11];
+        const pendientes = casos.filter((c: any) => estadosPendientes.includes(c.id_estado));
+        this.bandejaCasos.set(pendientes);
+      },
+      error: () => {},
+    });
+  }
+
+  irACaso(idCaso: number): void {
+    this.router.navigate(['/casos', idCaso, 'editar']);
+  }
 
   isLoginPage(): boolean {
     return this.router.url.startsWith('/login');

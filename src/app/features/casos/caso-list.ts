@@ -30,8 +30,7 @@ const ESTADOS_EDITABLES = [5, 7, 8, 9, 10];
 const ESTADO_ANULADO_ID = 14;
 const ESTADOS_CERRADOS = [12, 13];
 
-const ROLES_VEN_TODOS = [ROL_ADMINISTRADOR, ROL_GESTION_CONTROL_SYMA];
-const ROLES_PUEDEN_CREAR = [ROL_ADMINISTRADOR, ROL_PRL_CONTRATISTA];
+const ROLES_PUEDEN_CREAR = [ROL_ADMINISTRADOR, ROL_BRIGADA];
 const ROLES_PUEDEN_EDITAR = [ROL_ADMINISTRADOR, ROL_PRL_CONTRATISTA, ROL_RESPONSABLE_PROCESO, ROL_GESTOR_SYMA, ROL_GESTION_CONTROL_SYMA];
 const ROLES_PUEDEN_ANULAR = [ROL_ADMINISTRADOR, ROL_PRL_CONTRATISTA];
 
@@ -77,12 +76,8 @@ export class CasoList implements OnInit {
   readonly filtroBrigadaId = signal<number | null>(null);
   readonly brigadaSearchTerm = signal('');
 
-  readonly esVistaTodos = computed(() => {
-    const user = this.authService.currentUser();
-    return !!user && ROLES_VEN_TODOS.includes(user.id_rol);
-  });
-
-  readonly tituloVista = computed(() => (this.esVistaTodos() ? 'Todos los casos' : 'Mi bandeja'));
+  // Título fijo para la pantalla de gestión general
+  readonly tituloVista = computed(() => 'Gestión de Casos');
 
   readonly puedeCrear = computed(() => {
     const user = this.authService.currentUser();
@@ -118,24 +113,27 @@ export class CasoList implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
+    const user = this.authService.currentUser();
+    if (!user) {
+      this.isLoading.set(false);
+      return;
+    }
+
     const filtros = {
       id_region: this.filtroRegion() ?? undefined,
       id_estado: this.filtroEstado() ?? undefined,
       id_brigada: this.filtroBrigadaId() ?? undefined,
     };
 
-    const peticion$ = this.esVistaTodos()
-      ? this.casoService.getCasos(filtros)
-      : this.casoService.getBandeja(filtros);
-
-    peticion$.subscribe({
+    // Gestión de Casos consume directamente el endpoint general de casos
+    this.casoService.getCasos(filtros).subscribe({
       next: (casos) => {
         this.casos.set(casos);
         this.isLoading.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set('No se pudieron cargar los casos');
+        this.errorMessage.set(err.error?.message || 'No se pudieron cargar los casos');
       },
     });
   }

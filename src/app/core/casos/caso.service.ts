@@ -119,4 +119,14 @@ export class CasoService {
       .get<ApiListResponse<Caso>>(`${API_BASE_URL}/casos/bandeja`, { params })
       .pipe(map((response) => response.data));
   }
+
+  validarProcedencia(id: number, procede: boolean, motivo?: string): Observable<any> {
+    return this.http.patch(`${API_BASE_URL}/casos/${id}/procedencia`, { procede, motivo });
+  }
+
+  getBandejaCount(): Observable<{ success: boolean; data: { count: number } }> {
+    return this.http.get<{ success: boolean; data: { count: number } }>(
+      `${API_BASE_URL}/casos/bandeja/conteo`
+    );
+  }
 }
