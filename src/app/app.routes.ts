@@ -11,9 +11,9 @@ import { DocumentoListComponent } from './features/documentos/documento-list/doc
 
 
 export const routes: Routes = [
-  { path: 'login', component: Login },
-  { path: 'reportes-publicos', component: Dashboard },
+  { path: '', component: Dashboard, pathMatch: 'full' },
   { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
+  { path: 'login', component: Login },
   { path: 'admin', redirectTo: 'admin/usuarios', pathMatch: 'full' },
   {
     path: 'admin/usuarios', component: AdminUsers,
@@ -22,7 +22,7 @@ export const routes: Routes = [
   { path: 'casos', component: CasoList, canActivate: [authGuard] },
   {
     path: 'casos/nuevo', component: CasoForm,
-    canActivate: [authGuard, roleGuard([ROL_ADMINISTRADOR, ROL_BRIGADA])], // <-- Agregado ROL_BRIGADA aquí
+    canActivate: [authGuard, roleGuard([ROL_ADMINISTRADOR, ROL_PRL_CONTRATISTA])],
   },
   {
     path: 'casos/:id/editar', component: CasoForm,
@@ -31,6 +31,5 @@ export const routes: Routes = [
     ])],
   },
   { path: 'documentos', component: DocumentoListComponent, canActivate: [authGuard] },
-  { path: '', redirectTo: 'casos', pathMatch: 'full' },
-  { path: '**', redirectTo: 'casos' },
+  { path: '**', redirectTo: '' },
 ];
