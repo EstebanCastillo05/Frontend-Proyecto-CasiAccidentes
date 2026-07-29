@@ -50,9 +50,14 @@
 
           <!-- CONTENEDOR DERECHO: Solo Botón de Salir -->
           <div class="nav-actions-right">
-            <span class="role-pill">
-              <mat-icon>badge</mat-icon>
-              <span>{{ rolUsuario() }}</span>
+            <span class="role-chip" aria-label="Rol del usuario">
+              <span class="role-avatar">
+                <mat-icon>person</mat-icon>
+              </span>
+              <span class="role-meta">
+                <span>Rol</span>
+                <strong>{{ rolUsuario() }}</strong>
+              </span>
             </span>
 
             <button mat-button class="user-button" type="button" (click)="logout()">

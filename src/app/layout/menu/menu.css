@@ -64,6 +64,55 @@
   justify-self: end;
 }
 
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 38px;
+  padding: 4px 12px 4px 5px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1f2937;
+  box-shadow: 0 4px 12px rgba(15, 95, 120, 0.18);
+  white-space: nowrap;
+}
+
+.role-avatar {
+  width: 29px;
+  height: 29px;
+  border-radius: 999px;
+  background: #20a8d8;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.role-avatar mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.role-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.role-meta span {
+  color: #0f5f78;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.role-meta strong {
+  color: #1f2937;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .notif-bell-btn {
   color: #ffffff;
 }
@@ -231,6 +280,29 @@
   color: #ffffff;
 }
 
+.mobile-user-role {
+  margin: 12px 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobile-user-role span {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: #ffedd5;
+  font-weight: 700;
+}
+
+.mobile-user-role strong {
+  font-size: 0.9rem;
+}
+
 .mobile-section-title {
   padding: 12px 16px 4px;
   font-size: 0.75rem;
@@ -269,7 +341,8 @@
 
 @media (max-width: 1020px) {
   .nav-links-desktop,
-  .user-button {
+  .user-button,
+  .role-chip {
     display: none;
   }
 
