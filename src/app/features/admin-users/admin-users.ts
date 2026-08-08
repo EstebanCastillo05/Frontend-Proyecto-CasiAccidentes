@@ -11,7 +11,13 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { forkJoin } from 'rxjs';
 import { AdminService } from '../../core/admin/admin.service';
-import { Brigada, Contratista, Proceso, Region, Role, User } from '../../core/admin/admin.models';
+import { Brigada, Region, Role, User } from '../../core/admin/admin.models';
+import {
+  ROL_PRL_CONTRATISTA,
+  ROL_RESPONSABLE_PROCESO,
+  ROL_GESTOR_SYMA,
+  ROL_GESTION_CONTROL_SYMA,
+} from '../../core/auth/roles.constants';
 
 @Component({
   selector: 'app-admin-users',
@@ -39,8 +45,6 @@ export class AdminUsers implements OnInit {
   readonly brigadas = signal<Brigada[]>([]);
   readonly roles = signal<Role[]>([]);
   readonly regiones = signal<Region[]>([]);
-  readonly procesos = signal<Proceso[]>([]);
-  readonly contratistas = signal<Contratista[]>([]);
   readonly isLoading = signal(true);
   readonly isSaving = signal(false);
   readonly isSavingBrigada = signal(false);
@@ -51,10 +55,28 @@ export class AdminUsers implements OnInit {
   readonly errorMessage = signal('');
   readonly brigadaErrorMessage = signal('');
   readonly displayedColumns = ['usuario', 'rol', 'estado', 'acciones'];
-  readonly brigadaColumns = ['brigada', 'region', 'proceso', 'contratista', 'estado', 'acciones'];
+  readonly brigadaColumns = ['brigada', 'region', 'prl', 'responsable', 'estado', 'acciones'];
 
   readonly activeUsersCount = computed(() => this.users().filter((user) => user.activo !== false).length);
   readonly activeBrigadasCount = computed(() => this.brigadas().filter((brigada) => brigada.activo !== false).length);
+
+  readonly usuariosPrl = computed(() =>
+    this.users().filter((u) => u.activo !== false && this.getUserRole(u)?.id_rol === ROL_PRL_CONTRATISTA)
+  );
+  readonly usuariosResponsable = computed(() =>
+    this.users().filter((u) => u.activo !== false && this.getUserRole(u)?.id_rol === ROL_RESPONSABLE_PROCESO)
+  );
+
+  // --- Regiones asignadas a usuarios SYMA / Gestión y Control SYMA ---
+  readonly isSavingRegiones = signal(false);
+  readonly regionesFeedback = signal('');
+  readonly regionesErrorMessage = signal('');
+  readonly regionesSeleccionadas = signal<number[]>([]);
+
+  readonly esUsuarioConRegion = computed(() => {
+    const idRol = this.form.controls.id_rol.value;
+    return idRol === ROL_GESTOR_SYMA || idRol === ROL_GESTION_CONTROL_SYMA;
+  });
 
   readonly form = this.formBuilder.nonNullable.group({
     nombre: ['', [Validators.required]],
@@ -67,8 +89,8 @@ export class AdminUsers implements OnInit {
   readonly brigadaForm = this.formBuilder.nonNullable.group({
     nombre: ['', [Validators.required]],
     id_region: [0, [Validators.required, Validators.min(1)]],
-    id_proceso: [0, [Validators.required, Validators.min(1)]],
-    id_contratista: [0, [Validators.required, Validators.min(1)]],
+    id_usuario_prl: [0],
+    id_usuario_responsable: [0],
     activo: [true],
   });
 
@@ -90,8 +112,6 @@ export class AdminUsers implements OnInit {
       next: ({ roles, catalogos, users, brigadas }) => {
         this.roles.set(roles.filter((role) => role.activo !== false));
         this.regiones.set(catalogos.regiones);
-        this.procesos.set(catalogos.procesos);
-        this.contratistas.set(catalogos.contratistas);
         this.users.set(users);
         this.brigadas.set(brigadas);
         this.isLoading.set(false);
@@ -168,12 +188,46 @@ export class AdminUsers implements OnInit {
     this.selectedUser.set(user);
     this.feedback.set('');
     this.errorMessage.set('');
+    this.regionesFeedback.set('');
+    this.regionesErrorMessage.set('');
+    this.regionesSeleccionadas.set([]);
     this.form.reset({
       nombre: user.nombre || '',
       correo: user.correo || '',
       password: '',
       id_rol: userRole?.id_rol || 0,
       activo: user.activo !== false,
+    });
+
+    if (userRole?.id_rol === ROL_GESTOR_SYMA || userRole?.id_rol === ROL_GESTION_CONTROL_SYMA) {
+      this.adminService.getRegionesUsuario(user.id_usuario).subscribe({
+        next: (asignaciones) => {
+          const ids = asignaciones.map((a) => a.id_region).filter((id): id is number => id !== null);
+          this.regionesSeleccionadas.set(ids);
+        },
+        error: () => this.regionesErrorMessage.set('No se pudieron cargar las regiones asignadas'),
+      });
+    }
+  }
+
+  guardarRegiones(): void {
+    const user = this.selectedUser();
+    const idRol = this.form.controls.id_rol.value;
+    if (!user || !idRol) return;
+
+    this.isSavingRegiones.set(true);
+    this.regionesFeedback.set('');
+    this.regionesErrorMessage.set('');
+
+    this.adminService.setRegionesUsuario(user.id_usuario, idRol, this.regionesSeleccionadas()).subscribe({
+      next: () => {
+        this.isSavingRegiones.set(false);
+        this.regionesFeedback.set('Regiones asignadas correctamente');
+      },
+      error: (error) => {
+        this.isSavingRegiones.set(false);
+        this.regionesErrorMessage.set(error.error?.message || 'No se pudieron asignar las regiones');
+      },
     });
   }
 
@@ -211,8 +265,8 @@ export class AdminUsers implements OnInit {
     const brigadaData = {
         nombre: formValue.nombre,
         id_region: formValue.id_region,
-        id_proceso: formValue.id_proceso,
-        id_contratista: formValue.id_contratista,
+        id_usuario_prl: formValue.id_usuario_prl || null,
+        id_usuario_responsable: formValue.id_usuario_responsable || null,
         activo: formValue.activo,
     };
 
@@ -243,8 +297,8 @@ export class AdminUsers implements OnInit {
     this.brigadaForm.reset({
       nombre: '',
       id_region: 0,
-      id_proceso: 0,
-      id_contratista: 0,
+      id_usuario_prl: 0,
+      id_usuario_responsable: 0,
       activo: true,
     });
   }
@@ -253,11 +307,12 @@ export class AdminUsers implements OnInit {
     this.selectedBrigada.set(brigada);
     this.brigadaFeedback.set('');
     this.brigadaErrorMessage.set('');
+    const asignacion = brigada.brigada_asignacion?.[0];
     this.brigadaForm.reset({
       nombre: brigada.nombre || '',
       id_region: brigada.id_region || 0,
-      id_proceso: brigada.id_proceso || 0,
-      id_contratista: brigada.id_contratista || 0,
+      id_usuario_prl: asignacion?.id_usuario_prl || 0,
+      id_usuario_responsable: asignacion?.id_usuario_responsable || 0,
       activo: brigada.activo !== false,
     });
   }

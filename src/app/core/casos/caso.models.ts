@@ -17,6 +17,20 @@ export interface HistorialEstadoItem {
   icono?: string;
 }
 
+export interface UsuarioAsignado {
+  id_usuario: number;
+  nombre: string | null;
+  correo: string | null;
+}
+
+export interface BrigadaAsignacion {
+  id_asignacion: number;
+  id_usuario_prl: number | null;
+  id_usuario_responsable: number | null;
+  usuarios_prl?: UsuarioAsignado | null;
+  usuarios_responsable?: UsuarioAsignado | null;
+}
+
 export interface Brigada {
   id_brigada: number;
   nombre: string | null;
@@ -27,6 +41,8 @@ export interface Brigada {
   regiones?: Catalogo | null;
   procesos?: Catalogo | null;
   contratistas?: Catalogo | null;
+  // El backend incluye la asignación activa (PRL + Responsable) como arreglo de 1 elemento o vacío
+  brigada_asignacion?: BrigadaAsignacion[];
 }
 
 export interface Catalogo {
@@ -72,7 +88,6 @@ export interface CreateCasoRequest {
   descripcion: string;
   id_brigada: number;
   id_proceso: number;
-  id_contratista?: number | null;
 }
 
 export interface UpdateCasoRequest {
@@ -80,7 +95,6 @@ export interface UpdateCasoRequest {
   descripcion?: string;
   id_brigada?: number;
   id_proceso?: number;
-  id_contratista?: number | null;
 }
 
 export interface CasoFilters {

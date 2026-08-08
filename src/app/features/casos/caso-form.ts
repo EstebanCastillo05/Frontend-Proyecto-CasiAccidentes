@@ -60,8 +60,8 @@ export class CasoForm implements OnInit {
 
   readonly filteredBrigadas = signal<Brigada[]>([]);
   readonly procesos = signal<Catalogo[]>([]);
-  readonly contratistas = signal<Catalogo[]>([]);
   readonly regionSeleccionada = signal<string>('');
+  readonly responsableAsignado = signal<string>('');
   readonly isLoading = signal(true);
   readonly isSaving = signal(false);
   readonly errorMessage = signal('');
@@ -148,8 +148,11 @@ export class CasoForm implements OnInit {
     id_brigada: [0, [Validators.required, Validators.min(1)]],
     procesoSearch: ['', [Validators.required]],
     id_proceso: [0, [Validators.required, Validators.min(1)]],
-    id_contratista: [null as number | null],
   });
+
+  nombrePrlActual(): string {
+    return this.authService.currentUser()?.nombre || 'Usuario no identificado';
+  }
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -172,11 +175,6 @@ export class CasoForm implements OnInit {
     this.casoService.getProcesos().subscribe({
       next: (procesos) => this.procesos.set(procesos.filter((p) => p.activo !== false)),
       error: () => this.errorMessage.set('No se pudieron cargar los procesos'),
-    });
-
-    this.casoService.getContratistas().subscribe({
-      next: (contratistas) => this.contratistas.set(contratistas.filter((c) => c.activo !== false)),
-      error: () => {},
     });
 
     if (this.isEditMode() && this.casoId()) {
@@ -211,7 +209,6 @@ export class CasoForm implements OnInit {
           id_brigada: caso.id_brigada ?? 0,
           procesoSearch: caso.procesos?.nombre ?? '',
           id_proceso: caso.id_proceso ?? 0,
-          id_contratista: caso.id_contratista ?? null,
         });
         this.regionSeleccionada.set(caso.regiones?.nombre || 'Sin región asignada');
         this.isLoading.set(false);
@@ -240,11 +237,15 @@ export class CasoForm implements OnInit {
       brigadaSearch: brigada.nombre || '',
     });
     this.regionSeleccionada.set(brigada.regiones?.nombre || 'Sin región asignada');
+
+    const asignacion = brigada.brigada_asignacion?.[0];
+    this.responsableAsignado.set(asignacion?.usuarios_responsable?.nombre || '');
   }
 
   onBrigadaSearchChange(): void {
     this.form.controls.id_brigada.setValue(0);
     this.regionSeleccionada.set('');
+    this.responsableAsignado.set('');
   }
 
   onProcesoSelected(event: MatAutocompleteSelectedEvent): void {
@@ -414,8 +415,8 @@ export class CasoForm implements OnInit {
     this.isSaving.set(true);
     this.errorMessage.set('');
 
-    const { titulo, descripcion, id_brigada, id_proceso, id_contratista } = this.form.getRawValue();
-    const payload = { titulo, descripcion, id_brigada, id_proceso, id_contratista: id_contratista || undefined };
+    const { titulo, descripcion, id_brigada, id_proceso } = this.form.getRawValue();
+    const payload = { titulo, descripcion, id_brigada, id_proceso };
 
     if (this.isEditMode() && this.casoId()) {
       this.casoService.updateCaso(this.casoId()!, payload).subscribe({
@@ -450,6 +451,7 @@ export class CasoForm implements OnInit {
   registrarOtro(): void {
     this.savedCaso.set(null);
     this.regionSeleccionada.set('');
+    this.responsableAsignado.set('');
     this.filteredBrigadas.set([]);
     this.form.reset({
       titulo: '',
@@ -458,7 +460,6 @@ export class CasoForm implements OnInit {
       id_brigada: 0,
       procesoSearch: '',
       id_proceso: 0,
-      id_contratista: null,
     });
   }
 

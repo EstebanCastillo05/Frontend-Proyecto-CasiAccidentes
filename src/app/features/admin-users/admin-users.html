@@ -74,6 +74,50 @@
 
           <mat-slide-toggle formControlName="activo">Usuario activo</mat-slide-toggle>
 
+          @if (esUsuarioConRegion()) {
+            <div class="regiones-block">
+              <label>Regiones asignadas</label>
+              @if (!selectedUser()) {
+                <p class="hint">Guarda el usuario primero; luego edítalo para asignarle sus regiones.</p>
+              } @else {
+                <mat-form-field appearance="outline">
+                  <mat-label>Regiones (puede tener varias)</mat-label>
+                  <mat-select
+                    multiple
+                    [value]="regionesSeleccionadas()"
+                    (selectionChange)="regionesSeleccionadas.set($event.value)"
+                  >
+                    @for (region of regiones(); track region.id_region) {
+                      <mat-option [value]="region.id_region">{{ region.nombre }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                @if (regionesFeedback()) {
+                  <div class="feedback success">
+                    <mat-icon>check_circle</mat-icon>
+                    <span>{{ regionesFeedback() }}</span>
+                  </div>
+                }
+                @if (regionesErrorMessage()) {
+                  <div class="feedback error">
+                    <mat-icon>error</mat-icon>
+                    <span>{{ regionesErrorMessage() }}</span>
+                  </div>
+                }
+
+                <button mat-stroked-button type="button" [disabled]="isSavingRegiones()" (click)="guardarRegiones()">
+                  @if (isSavingRegiones()) {
+                    <mat-spinner diameter="18"></mat-spinner>
+                  } @else {
+                    <mat-icon>map</mat-icon>
+                  }
+                  <span>Guardar regiones</span>
+                </button>
+              }
+            </div>
+          }
+
           @if (feedback()) {
             <div class="feedback success">
               <mat-icon>check_circle</mat-icon>
@@ -220,31 +264,25 @@
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Proceso</mat-label>
-              <mat-icon matPrefix>account_tree</mat-icon>
-              <mat-select formControlName="id_proceso">
-                <mat-option [value]="0">Seleccionar proceso</mat-option>
-                @for (proceso of procesos(); track proceso.id_proceso) {
-                  <mat-option [value]="proceso.id_proceso">{{ proceso.nombre }}</mat-option>
+              <mat-label>PRL Contratista</mat-label>
+              <mat-icon matPrefix>badge</mat-icon>
+              <mat-select formControlName="id_usuario_prl">
+                <mat-option [value]="0">Sin asignar</mat-option>
+                @for (usuario of usuariosPrl(); track usuario.id_usuario) {
+                  <mat-option [value]="usuario.id_usuario">{{ usuario.nombre }}</mat-option>
                 }
               </mat-select>
-              @if (brigadaForm.controls.id_proceso.hasError('min')) {
-                <mat-error>Selecciona un proceso</mat-error>
-              }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Contratista</mat-label>
-              <mat-icon matPrefix>business</mat-icon>
-              <mat-select formControlName="id_contratista">
-                <mat-option [value]="0">Seleccionar contratista</mat-option>
-                @for (contratista of contratistas(); track contratista.id_contratista) {
-                  <mat-option [value]="contratista.id_contratista">{{ contratista.nombre }}</mat-option>
+              <mat-label>Responsable del Proceso</mat-label>
+              <mat-icon matPrefix>engineering</mat-icon>
+              <mat-select formControlName="id_usuario_responsable">
+                <mat-option [value]="0">Sin asignar</mat-option>
+                @for (usuario of usuariosResponsable(); track usuario.id_usuario) {
+                  <mat-option [value]="usuario.id_usuario">{{ usuario.nombre }}</mat-option>
                 }
               </mat-select>
-              @if (brigadaForm.controls.id_contratista.hasError('min')) {
-                <mat-error>Selecciona un contratista</mat-error>
-              }
             </mat-form-field>
 
             <mat-slide-toggle formControlName="activo">Brigada activa</mat-slide-toggle>
@@ -309,14 +347,14 @@
                 <td mat-cell *matCellDef="let brigada">{{ brigada.regiones?.nombre || 'Sin region' }}</td>
               </ng-container>
 
-              <ng-container matColumnDef="proceso">
-                <th mat-header-cell *matHeaderCellDef>Proceso</th>
-                <td mat-cell *matCellDef="let brigada">{{ brigada.procesos?.nombre || 'Sin proceso' }}</td>
+              <ng-container matColumnDef="prl">
+                <th mat-header-cell *matHeaderCellDef>PRL Contratista</th>
+                <td mat-cell *matCellDef="let brigada">{{ brigada.brigada_asignacion?.[0]?.usuarios_prl?.nombre || 'Sin asignar' }}</td>
               </ng-container>
 
-              <ng-container matColumnDef="contratista">
-                <th mat-header-cell *matHeaderCellDef>Contratista</th>
-                <td mat-cell *matCellDef="let brigada">{{ brigada.contratistas?.nombre || 'Sin contratista' }}</td>
+              <ng-container matColumnDef="responsable">
+                <th mat-header-cell *matHeaderCellDef>Responsable del Proceso</th>
+                <td mat-cell *matCellDef="let brigada">{{ brigada.brigada_asignacion?.[0]?.usuarios_responsable?.nombre || 'Sin asignar' }}</td>
               </ng-container>
 
               <ng-container matColumnDef="estado">

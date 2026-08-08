@@ -3,7 +3,6 @@ import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 import { 
   ROL_ADMINISTRADOR, 
-  ROL_BRIGADA, 
   ROL_PRL_CONTRATISTA, 
   ROL_RESPONSABLE_PROCESO, 
   ROL_GESTOR_SYMA, 
@@ -29,7 +28,7 @@ export const routes: Routes = [
   {
     path: 'casos/nuevo', 
     component: CasoForm,
-    canActivate: [authGuard, roleGuard([ROL_ADMINISTRADOR, ROL_BRIGADA, ROL_PRL_CONTRATISTA])],
+    canActivate: [authGuard, roleGuard([ROL_ADMINISTRADOR, ROL_PRL_CONTRATISTA])],
   },
   {
     path: 'casos/:id/editar', 

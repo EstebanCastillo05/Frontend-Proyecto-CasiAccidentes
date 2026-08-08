@@ -12,6 +12,7 @@ import {
   UpdateBrigadaRequest,
   UpdateUserRequest,
   User,
+  UsuarioAsignacionRegion,
 } from './admin.models';
 
 @Injectable({ providedIn: 'root' })
@@ -75,6 +76,18 @@ export class AdminService {
   deleteBrigada(id: number): Observable<Brigada> {
     return this.http
       .delete<ApiResponse<Brigada>>(`${API_BASE_URL}/brigadas/${id}`)
+      .pipe(map((response) => response.data));
+  }
+
+  getRegionesUsuario(id: number): Observable<UsuarioAsignacionRegion[]> {
+    return this.http
+      .get<ApiResponse<UsuarioAsignacionRegion[]>>(`${API_BASE_URL}/usuarios/${id}/regiones`)
+      .pipe(map((response) => response.data));
+  }
+
+  setRegionesUsuario(id: number, id_rol: number, ids_region: number[]): Observable<UsuarioAsignacionRegion[]> {
+    return this.http
+      .put<ApiResponse<UsuarioAsignacionRegion[]>>(`${API_BASE_URL}/usuarios/${id}/regiones`, { id_rol, ids_region })
       .pipe(map((response) => response.data));
   }
 }

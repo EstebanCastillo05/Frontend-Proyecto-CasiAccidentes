@@ -63,6 +63,20 @@ export interface Contratista {
   activo: boolean | null;
 }
 
+export interface UsuarioResumen {
+  id_usuario: number;
+  nombre: string | null;
+  correo: string | null;
+}
+
+export interface BrigadaAsignacion {
+  id_asignacion: number;
+  id_usuario_prl: number | null;
+  id_usuario_responsable: number | null;
+  usuarios_prl?: UsuarioResumen | null;
+  usuarios_responsable?: UsuarioResumen | null;
+}
+
 export interface Brigada {
   id_brigada: number;
   nombre: string | null;
@@ -73,6 +87,18 @@ export interface Brigada {
   regiones?: Region | null;
   procesos?: Proceso | null;
   contratistas?: Contratista | null;
+  brigada_asignacion?: BrigadaAsignacion[];
+}
+
+export interface SetBrigadaAsignacionRequest {
+  id_usuario_prl: number | null;
+  id_usuario_responsable: number | null;
+}
+
+export interface UsuarioAsignacionRegion {
+  id_asignacion: number;
+  id_region: number | null;
+  regiones?: Region | null;
 }
 
 export interface BrigadaCatalogos {
@@ -84,15 +110,15 @@ export interface BrigadaCatalogos {
 export interface CreateBrigadaRequest {
   nombre: string;
   id_region: number | null;
-  id_proceso: number | null;
-  id_contratista: number | null;
+  id_usuario_prl?: number | null;
+  id_usuario_responsable?: number | null;
   activo: boolean;
 }
 
 export interface UpdateBrigadaRequest {
   nombre?: string;
   id_region?: number | null;
-  id_proceso?: number | null;
-  id_contratista?: number | null;
+  id_usuario_prl?: number | null;
+  id_usuario_responsable?: number | null;
   activo?: boolean;
 }

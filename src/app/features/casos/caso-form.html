@@ -114,16 +114,21 @@
                 </mat-form-field>
                 
                 <mat-form-field appearance="outline">
-                  <mat-label>Contratista (Opcional)</mat-label>
-                  <mat-icon matPrefix>business</mat-icon>
-                  <mat-select formControlName="id_contratista">
-                    <mat-option [value]="null">Sin contratista</mat-option>
-                    @for (contratista of contratistas(); track contratista.id_contratista) {
-                      <mat-option [value]="contratista.id_contratista">{{ contratista.nombre }}</mat-option>
-                    }
-                  </mat-select>
+                  <mat-label>Responsable del Proceso</mat-label>
+                  <mat-icon matPrefix>engineering</mat-icon>
+                  <input matInput [value]="responsableAsignado() || 'Se asigna según la brigada seleccionada'" disabled>
                 </mat-form-field>
               </div>
+
+              @if (!isEditMode()) {
+                <div class="fila-doble">
+                  <mat-form-field appearance="outline">
+                    <mat-label>PRL Contratista (registra el caso)</mat-label>
+                    <mat-icon matPrefix>badge</mat-icon>
+                    <input matInput [value]="nombrePrlActual()" disabled>
+                  </mat-form-field>
+                </div>
+              }
 
               @if (errorMessage()) {
                 <p class="error-message">
