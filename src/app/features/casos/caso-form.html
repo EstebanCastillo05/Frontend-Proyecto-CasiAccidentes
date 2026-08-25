@@ -158,6 +158,12 @@
                       </button>
                     }
 
+                    @if (esResponsableRevisionEvidencias()) {
+                      <button mat-flat-button color="primary" type="button" (click)="enviarResponsableAccion('ENVIAR_CIERRE')" [disabled]="isSaving()">
+                        <mat-icon>send</mat-icon> Enviar evidencias a SYMA
+                      </button>
+                    }
+
                     @if (esResponsableEnviarPrl()) {
                       <button mat-flat-button color="primary" type="button" (click)="enviarResponsable()" [disabled]="isSaving()">
                         <mat-icon>assignment</mat-icon> Solicitar formato de divulgacion a PRL

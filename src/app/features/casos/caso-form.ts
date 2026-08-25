@@ -93,7 +93,18 @@ export class CasoForm implements OnInit {
     const user = this.authService.currentUser();
     return user?.id_rol === ROL_RESPONSABLE_PROCESO &&
       estadoId === 3 &&
-      estado.includes('pendiente de revision del responsable');
+      estado.includes('pendiente de revision del responsable') &&
+      !this.tieneAccionesCorrectivas();
+  });
+
+  readonly esResponsableRevisionEvidencias = computed(() => {
+    const estadoId = this.casoActual()?.id_estado ?? 0;
+    const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
+    const user = this.authService.currentUser();
+    return user?.id_rol === ROL_RESPONSABLE_PROCESO &&
+      estadoId === 3 &&
+      estado.includes('pendiente de revision del responsable') &&
+      this.tieneAccionesCorrectivas();
   });
 
   readonly esResponsableEnviarPrl = computed(() => {
@@ -138,7 +149,7 @@ export class CasoForm implements OnInit {
   readonly esSymaRevisionEvidencias = computed(() => {
     const estadoId = this.casoActual()?.id_estado ?? 0;
     const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
-    return estadoId === 11 || estado.includes('evidencias en revision');
+    return estadoId === 11 || estado.includes('evidencias en revision') || this.tieneAccionesCorrectivas();
   });
 
   readonly form = this.formBuilder.nonNullable.group({
@@ -211,6 +222,7 @@ export class CasoForm implements OnInit {
           id_proceso: caso.id_proceso ?? 0,
         });
         this.regionSeleccionada.set(caso.regiones?.nombre || 'Sin región asignada');
+        this.responsableAsignado.set(this.obtenerResponsableBrigada(caso.brigadas));
         this.isLoading.set(false);
       },
       error: () => {
@@ -238,8 +250,12 @@ export class CasoForm implements OnInit {
     });
     this.regionSeleccionada.set(brigada.regiones?.nombre || 'Sin región asignada');
 
-    const asignacion = brigada.brigada_asignacion?.[0];
-    this.responsableAsignado.set(asignacion?.usuarios_responsable?.nombre || '');
+    this.responsableAsignado.set(this.obtenerResponsableBrigada(brigada));
+  }
+
+  private obtenerResponsableBrigada(brigada: Brigada | null | undefined): string {
+    return brigada?.brigada_asignacion?.find((asignacion) => asignacion.usuarios_responsable?.nombre)
+      ?.usuarios_responsable?.nombre || '';
   }
 
   onBrigadaSearchChange(): void {
@@ -467,6 +483,19 @@ export class CasoForm implements OnInit {
     this.documentoList()?.reload();
   }
 
+  private tieneAccionesCorrectivas(): boolean {
+    const normalizar = (texto: string) =>
+      texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    return this.historialCaso().some((item: any) => {
+      const accion = normalizar(item.accion || '');
+      const estado = normalizar(item.estado || item.estado_destino || '');
+
+      return accion.includes('enviar_acciones') ||
+        estado.includes('acciones correctivas') ||
+        estado.includes('evidencias en revision');
+    });
+  }
   private tieneAprobacionSymaDivulgacion(): boolean {
     let prlEnvioFormato = false;
     const normalizar = (texto: string) =>
