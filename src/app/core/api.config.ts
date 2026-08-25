@@ -1,1 +1,1 @@
-export const API_BASE_URL = 'https://BACKEND-RAILWAY.up.railway.app/api';
+export const API_BASE_URL = 'https://backend-proyecto-casiaccidente-production.up.railway.app/api';
