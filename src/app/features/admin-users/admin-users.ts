@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -73,17 +74,20 @@ export class AdminUsers implements OnInit {
   readonly regionesErrorMessage = signal('');
   readonly regionesSeleccionadas = signal<number[]>([]);
 
-  readonly esUsuarioConRegion = computed(() => {
-    const idRol = this.form.controls.id_rol.value;
-    return idRol === ROL_GESTOR_SYMA || idRol === ROL_GESTION_CONTROL_SYMA;
-  });
-
   readonly form = this.formBuilder.nonNullable.group({
     nombre: ['', [Validators.required]],
     correo: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.minLength(6)]],
     id_rol: [0, [Validators.required, Validators.min(1)]],
     activo: [true],
+  });
+  private readonly idRolSignal = toSignal(this.form.controls.id_rol.valueChanges, {
+    initialValue: this.form.controls.id_rol.value,
+  });
+
+  readonly esUsuarioConRegion = computed(() => {
+    const idRol = this.idRolSignal();
+    return idRol === ROL_GESTOR_SYMA || idRol === ROL_GESTION_CONTROL_SYMA;
   });
 
   readonly brigadaForm = this.formBuilder.nonNullable.group({
