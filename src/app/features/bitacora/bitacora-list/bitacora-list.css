@@ -1,0 +1,89 @@
+.list-card {
+  max-width: 1200px;
+  margin: 30px auto;
+  border-radius: 16px;
+}
+
+.list-header {
+  margin-bottom: 20px;
+}
+
+.list-header h2 {
+  margin: 0 0 0.35rem;
+}
+
+.list-header p,
+.caso-title {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.search-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.search-bar mat-form-field {
+  flex: 1;
+}
+
+.table-wrapper {
+  overflow: auto;
+}
+
+.history-table {
+  width: 100%;
+}
+
+.state-flow {
+  display: inline-block;
+  max-width: 320px;
+  white-space: normal;
+}
+
+.loading-state,
+.empty-state,
+.error-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 40px;
+  text-align: center;
+}
+
+.error-state {
+  color: #b3261e;
+}
+
+@media (max-width: 768px) {
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .history-table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 600px) {
+  .list-card {
+    margin: 12px auto;
+    border-radius: 10px;
+  }
+
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 18px;
+  }
+
+  .search-bar mat-form-field,
+  .search-bar button {
+    width: 100%;
+  }
+}

@@ -44,5 +44,10 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard([ROL_ADMINISTRADOR, ROL_PRL_CONTRATISTA, ROL_GESTOR_SYMA])],
   },
   { path: 'documentos', component: DocumentoListComponent, canActivate: [authGuard] },
+  {
+    path: 'bitacora',
+    loadComponent: () => import('./features/bitacora/bitacora-list/bitacora-list').then((m) => m.BitacoraList),
+    canActivate: [authGuard, roleGuard([ROL_ADMINISTRADOR, ROL_GESTION_CONTROL_SYMA])],
+  },
   { path: '**', redirectTo: '' },
 ];
