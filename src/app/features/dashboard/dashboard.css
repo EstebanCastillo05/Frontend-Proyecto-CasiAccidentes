@@ -587,19 +587,3 @@ h1 {
     width: 100%;
   }
 }
-
-/* Responsive extra */
-@media (max-width: 960px) {
-  .dashboard-page { max-width: 100%; }
-  .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dashboard-grid { grid-template-columns: 1fr; }
-}
-@media (max-width: 600px) {
-  h1 { font-size: 1.45rem; }
-  .filter-card mat-card-content, :host ::ng-deep .chart-card .mat-mdc-card-content { padding: 12px; }
-  .summary-grid, .filter-grid { grid-template-columns: 1fr; }
-  .summary-card mat-card-content { padding: 12px; }
-  .monthly-bars { grid-template-columns: repeat(auto-fit, minmax(52px, 1fr)); gap: 10px; overflow-x: auto; }
-  .monthly-stack { width: min(42px, 72%); }
-  .donut-chart { width: 150px; }
-}

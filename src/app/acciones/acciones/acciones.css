@@ -107,16 +107,3 @@ td.mat-cell, th.mat-header-cell {
 .text-right {
   text-align: right;
 }
-
-/* Responsive */
-@media (max-width: 768px) {
-  .acciones-container { margin: 1.25rem auto; padding: 0 0.75rem; }
-  .card-header-custom, .card-content-custom { padding: 1rem !important; }
-  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { min-width: 720px; }
-}
-@media (max-width: 600px) {
-  .acciones-container { margin: 1rem auto; padding: 0 0.5rem; }
-  .card-header-custom { align-items: flex-start; gap: 0.75rem; }
-  .header-icon-container { width: 40px; height: 40px; }
-}

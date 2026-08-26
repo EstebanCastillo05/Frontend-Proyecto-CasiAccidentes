@@ -19,11 +19,3 @@ body {
 .mat-mdc-progress-spinner {
   --mdc-circular-progress-active-indicator-color: #111113;
 }
-
-/* Responsive global */
-html, body { margin: 0; max-width: 100%; overflow-x: hidden; }
-img, iframe, table { max-width: 100%; }
-@media (max-width: 600px) {
-  .mat-mdc-dialog-panel { max-width: calc(100vw - 24px) !important; }
-  .mat-mdc-form-field { width: 100%; }
-}
