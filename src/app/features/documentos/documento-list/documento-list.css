@@ -50,3 +50,19 @@ mat-icon{
   .search-bar { flex-direction: column; align-items: stretch; margin-bottom: 18px; }
   .search-bar mat-form-field, .search-bar button { width: 100%; }
 }
+/* Document cards movil */
+@media (max-width: 600px) {
+  .table-wrapper { overflow: visible; }
+  .documents-table, .documents-table tbody, .documents-table tr, .documents-table td { display: block; width: 100%; }
+  .documents-table { min-width: 0 !important; }
+  .documents-table thead, .documents-table .mat-mdc-header-row { display: none; }
+  .documents-table tr.mat-mdc-row { margin-bottom: 0.75rem; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; }
+  .documents-table td.mat-mdc-cell { display: flex; justify-content: space-between; gap: 1rem; padding: 0.45rem 0; border: 0; text-align: right; word-break: break-word; }
+  .documents-table td.mat-mdc-cell::before { content: ''; flex: 0 0 38%; color: rgba(0,0,0,.6); font-weight: 700; text-align: left; }
+  .documents-table td.mat-mdc-cell:nth-child(1)::before { content: 'Tipo'; }
+  .documents-table td.mat-mdc-cell:nth-child(2)::before { content: 'Archivo'; }
+  .documents-table td.mat-mdc-cell:nth-child(3)::before { content: 'Versión'; }
+  .documents-table td.mat-mdc-cell:nth-child(4)::before { content: 'Descripción'; }
+  .documents-table td.mat-mdc-cell:nth-child(5)::before { content: 'Fecha'; }
+  .documents-table td.mat-mdc-cell:nth-child(6)::before { content: 'Acciones'; }
+}

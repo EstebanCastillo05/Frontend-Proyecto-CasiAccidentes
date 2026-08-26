@@ -129,3 +129,9 @@
   .selected-file { align-items: flex-start; flex-direction: column; }
   .actions, .actions button { width: 100%; }
 }
+/* Upload movil compacto */
+@media (max-width: 600px) {
+  .upload-card { max-width: 100%; overflow: hidden; }
+  .upload-form { gap: 0.6rem; }
+  .dropzone-title, .dropzone-help, .selected-file-name { word-break: break-word; }
+}

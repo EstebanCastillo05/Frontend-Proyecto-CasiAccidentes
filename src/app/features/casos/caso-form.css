@@ -230,3 +230,11 @@
   .acciones-form { flex-direction: column; align-items: stretch; }
   .acciones-form button { width: 100%; }
 }
+/* Gestion casos movil */
+@media (max-width: 600px) {
+  .form-card, .documentos-card { border-radius: 10px; overflow: hidden; }
+  .form-header { align-items: flex-start; gap: 0.75rem; padding: 0.9rem; }
+  .form-header h2 { font-size: 1.08rem; }
+  .subtitulo { font-size: 0.82rem; }
+  .documentos-title { align-items: flex-start; }
+}
