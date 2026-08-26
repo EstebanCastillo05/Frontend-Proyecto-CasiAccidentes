@@ -67,3 +67,20 @@ mat-icon{
   .documents-table td.mat-mdc-cell:nth-child(5)::before{content:'Fecha'}
   .documents-table td.mat-mdc-cell:nth-child(6)::before{content:'Acciones'}
 }
+
+/* Acciones documentales juntas movil */
+@media (max-width: 600px) {
+  .documents-table td.mat-mdc-cell:nth-child(6) {
+    display: flex;
+    align-items: center;
+    gap: .15rem;
+  }
+
+  .documents-table td.mat-mdc-cell:nth-child(6)::before {
+    margin-right: auto;
+  }
+
+  .documents-table td.mat-mdc-cell:nth-child(6) button {
+    flex: 0 0 auto;
+  }
+}
