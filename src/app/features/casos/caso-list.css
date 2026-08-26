@@ -159,3 +159,9 @@
   .tabla-scroll td.mat-mdc-cell:nth-child(6)::before{content:'Fecha'}
   .tabla-scroll td.mat-mdc-cell:nth-child(7)::before{content:'Acciones'}
 }
+/* Acciones juntas movil */
+@media (max-width: 600px) {
+  .tabla-scroll td.mat-mdc-cell:nth-child(7){display:flex;align-items:center;gap:.15rem}
+  .tabla-scroll td.mat-mdc-cell:nth-child(7)::before{margin-right:auto}
+  .tabla-scroll td.mat-mdc-cell:nth-child(7) button{flex:0 0 auto}
+}

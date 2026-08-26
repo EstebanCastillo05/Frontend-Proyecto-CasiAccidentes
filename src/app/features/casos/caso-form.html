@@ -207,7 +207,7 @@
                     }
                   }
                 } @else {
-                  <button mat-flat-button color="primary" type="submit" [disabled]="isSaving()">
+                  <button mat-flat-button color="primary" class="registrar-caso-button" type="submit" [disabled]="isSaving()">
                     @if (isSaving()) { <mat-spinner diameter="20"></mat-spinner> } @else { Registrar Caso }
                   </button>
                 }

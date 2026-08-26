@@ -238,3 +238,7 @@
   .subtitulo { font-size: 0.82rem; }
   .documentos-title { align-items: flex-start; }
 }
+/* Boton registrar movil */
+@media (max-width: 600px) {
+  .acciones-form .registrar-caso-button{width:auto;min-width:150px;align-self:flex-end;flex:0 0 auto;padding:8px 14px}
+}
