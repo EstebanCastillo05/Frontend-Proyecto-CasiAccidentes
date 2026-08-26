@@ -350,3 +350,15 @@
     display: inline-flex;
   }
 }
+
+/* Responsive general */
+@media (max-width: 768px) {
+  .floating-nav { grid-template-columns: 1fr auto; padding: 0 12px; }
+  .logo-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .content-area { padding: 16px; }
+}
+@media (max-width: 600px) {
+  .content-area { padding: 12px 8px; }
+  .mobile-sidebar { width: min(280px, 86vw); }
+  .login-button span { display: none; }
+}

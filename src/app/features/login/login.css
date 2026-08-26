@@ -137,3 +137,11 @@ h1 {
     padding: 28px;
   }
 }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .login-shell { padding: 16px; align-items: start; padding-top: 9vh; }
+  .login-card { width: 100%; padding: 24px 20px; }
+  h1 { font-size: 1.55rem; }
+}
+@media (max-width: 360px) { .login-card { padding: 22px 16px; } }
