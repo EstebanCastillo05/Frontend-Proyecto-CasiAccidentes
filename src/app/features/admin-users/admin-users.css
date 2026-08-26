@@ -255,7 +255,6 @@ h2 {
   }
 }
 
-.table-card { overflow-x: auto; }
 
 @media (max-width: 600px) {
   :host ::ng-deep .mat-mdc-card-header { padding: 12px 12px 0; }
@@ -264,3 +263,4 @@ h2 {
   .form-actions button { width: 100%; }
   .users-table { min-width: 720px; }
 }
+.table-card{max-height:620px;overflow:auto}
