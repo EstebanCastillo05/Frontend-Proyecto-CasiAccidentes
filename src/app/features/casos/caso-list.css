@@ -143,19 +143,19 @@
 
 /* Caso cards movil */
 @media (max-width: 600px) {
-  .tabla-card { background: transparent; box-shadow: none; }
-  .tabla-scroll { overflow: visible; }
-  .tabla-scroll table, .tabla-scroll tbody, .tabla-scroll tr, .tabla-scroll td { display: block; width: 100%; }
-  .tabla-scroll table { min-width: 0 !important; }
-  .tabla-scroll thead, .tabla-scroll .mat-mdc-header-row { display: none; }
-  .tabla-scroll tr.mat-mdc-row { margin-bottom: 0.75rem; padding: 0.75rem; border: 1px solid #d7edf4; border-radius: 8px; background: #fff; }
-  .tabla-scroll td.mat-mdc-cell { display: flex; justify-content: space-between; gap: 1rem; padding: 0.45rem 0; border: 0; text-align: right; }
-  .tabla-scroll td.mat-mdc-cell::before { content: ''; flex: 0 0 42%; color: rgba(0,0,0,.6); font-weight: 700; text-align: left; }
-  .tabla-scroll td.mat-mdc-cell:nth-child(1)::before { content: 'Caso'; }
-  .tabla-scroll td.mat-mdc-cell:nth-child(2)::before { content: 'Título'; }
-  .tabla-scroll td.mat-mdc-cell:nth-child(3)::before { content: 'Brigada'; }
-  .tabla-scroll td.mat-mdc-cell:nth-child(4)::before { content: 'Región'; }
-  .tabla-scroll td.mat-mdc-cell:nth-child(5)::before { content: 'Estado'; }
-  .tabla-scroll td.mat-mdc-cell:nth-child(6)::before { content: 'Fecha'; }
-  .tabla-scroll td.mat-mdc-cell:nth-child(7)::before { content: 'Acciones'; }
+  .tabla-card{background:transparent;box-shadow:none;overflow:visible}
+  .tabla-scroll{overflow:visible}
+  .tabla-scroll table,.tabla-scroll tbody{display:block;width:100%;min-width:0!important}
+  .tabla-scroll thead,.tabla-scroll .mat-mdc-header-row{display:none}
+  .tabla-scroll tr.mat-mdc-row{display:block;height:auto;min-height:0;margin-bottom:.75rem;padding:.75rem;border:1px solid #d7edf4;border-radius:8px;background:#fff}
+  .tabla-scroll td.mat-mdc-cell{display:grid;grid-template-columns:minmax(86px,36%) minmax(0,1fr);align-items:start;gap:.75rem;min-height:0;height:auto;padding:.42rem 0;border:0;text-align:left;white-space:normal;word-break:break-word}
+  .tabla-scroll td.mat-mdc-cell>*{min-width:0;justify-self:end;text-align:right}
+  .tabla-scroll td.mat-mdc-cell::before{color:rgba(0,0,0,.62);font-weight:700;text-align:left}
+  .tabla-scroll td.mat-mdc-cell:nth-child(1)::before{content:'Caso'}
+  .tabla-scroll td.mat-mdc-cell:nth-child(2)::before{content:'Título'}
+  .tabla-scroll td.mat-mdc-cell:nth-child(3)::before{content:'Brigada'}
+  .tabla-scroll td.mat-mdc-cell:nth-child(4)::before{content:'Región'}
+  .tabla-scroll td.mat-mdc-cell:nth-child(5)::before{content:'Estado'}
+  .tabla-scroll td.mat-mdc-cell:nth-child(6)::before{content:'Fecha'}
+  .tabla-scroll td.mat-mdc-cell:nth-child(7)::before{content:'Acciones'}
 }
