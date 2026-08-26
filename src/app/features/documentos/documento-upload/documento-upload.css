@@ -122,3 +122,10 @@
   display: flex;
   justify-content: flex-end;
 }
+
+@media (max-width: 600px) {
+  .upload-header { align-items: flex-start; padding: 0.75rem 0.75rem 0; }
+  .dropzone { padding: 0.85rem; }
+  .selected-file { align-items: flex-start; flex-direction: column; }
+  .actions, .actions button { width: 100%; }
+}

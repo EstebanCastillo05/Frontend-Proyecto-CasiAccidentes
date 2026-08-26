@@ -93,3 +93,10 @@
   color: #333;
   margin-top: 6px;
 }
+
+@media (max-width: 600px) {
+  .timeline-container { margin-top: 12px; padding: 12px; }
+  .timeline-header { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .timeline-icon-wrapper { margin-right: 10px; }
+  .timeline-content { min-width: 0; padding: 9px 10px; }
+}
