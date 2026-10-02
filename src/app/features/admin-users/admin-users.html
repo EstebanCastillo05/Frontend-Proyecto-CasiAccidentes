@@ -266,23 +266,31 @@
             <mat-form-field appearance="outline">
               <mat-label>PRL Contratista</mat-label>
               <mat-icon matPrefix>badge</mat-icon>
-              <mat-select formControlName="id_usuario_prl">
-                <mat-option [value]="0">Sin asignar</mat-option>
-                @for (usuario of usuariosPrl(); track usuario.id_usuario) {
-                  <mat-option [value]="usuario.id_usuario">{{ usuario.nombre }}</mat-option>
+              <input matInput formControlName="prlSearch" [matAutocomplete]="autoPrl" (input)="onPrlSearchInput()" (blur)="onPrlBlur()" placeholder="Buscar usuario...">
+              <mat-autocomplete #autoPrl="matAutocomplete" [displayWith]="displayUsuario" (optionSelected)="onPrlSelected($event)">
+                <mat-option value="">Sin asignar</mat-option>
+                @for (usuario of filteredPrl(); track usuario.id_usuario) {
+                  <mat-option [value]="usuario">{{ usuario.nombre }}</mat-option>
                 }
-              </mat-select>
+              </mat-autocomplete>
+              @if (prlSearchError()) {
+                <mat-error>Selecciona un PRL de las sugerencias o deja el campo vacío</mat-error>
+              }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>Responsable del Proceso</mat-label>
               <mat-icon matPrefix>engineering</mat-icon>
-              <mat-select formControlName="id_usuario_responsable">
-                <mat-option [value]="0">Sin asignar</mat-option>
-                @for (usuario of usuariosResponsable(); track usuario.id_usuario) {
-                  <mat-option [value]="usuario.id_usuario">{{ usuario.nombre }}</mat-option>
+              <input matInput formControlName="responsableSearch" [matAutocomplete]="autoResponsable" (input)="onResponsableSearchInput()" (blur)="onResponsableBlur()" placeholder="Buscar usuario...">
+              <mat-autocomplete #autoResponsable="matAutocomplete" [displayWith]="displayUsuario" (optionSelected)="onResponsableSelected($event)">
+                <mat-option value="">Sin asignar</mat-option>
+                @for (usuario of filteredResponsables(); track usuario.id_usuario) {
+                  <mat-option [value]="usuario">{{ usuario.nombre }}</mat-option>
                 }
-              </mat-select>
+              </mat-autocomplete>
+              @if (responsableSearchError()) {
+                <mat-error>Selecciona un Responsable de las sugerencias o deja el campo vacío</mat-error>
+              }
             </mat-form-field>
 
             <mat-slide-toggle formControlName="activo">Brigada activa</mat-slide-toggle>

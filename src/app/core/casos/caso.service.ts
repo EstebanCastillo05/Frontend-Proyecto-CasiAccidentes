@@ -138,8 +138,8 @@ export class CasoService {
     return this.http.patch(`${API_BASE_URL}/casos/${id}/responsable`, { accion, motivo });
   }
 
-  gestionarSyma(id: number, aprobado: boolean, motivo?: string): Observable<any> {
-    return this.http.patch(`${API_BASE_URL}/casos/${id}/syma`, { aprobado, motivo });
+  gestionarSyma(id: number, accion: 'APROBAR' | 'PROCEDE_SIN_ACCIONES' | 'SOLICITAR_ACCIONES' | 'RECHAZAR', motivo?: string): Observable<any> {
+    return this.http.patch(`${API_BASE_URL}/casos/${id}/syma`, { accion, aprobado: accion === 'APROBAR', motivo });
   }
 
   gestionarPrl(id: number, motivo?: string): Observable<any> {

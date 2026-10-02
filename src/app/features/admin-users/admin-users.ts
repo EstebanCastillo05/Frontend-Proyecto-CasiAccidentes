@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,6 +26,7 @@ import {
   standalone: true,
   imports: [
     ReactiveFormsModule,
+    MatAutocompleteModule,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
@@ -55,6 +57,8 @@ export class AdminUsers implements OnInit {
   readonly brigadaFeedback = signal('');
   readonly errorMessage = signal('');
   readonly brigadaErrorMessage = signal('');
+  readonly prlSearchError = signal(false);
+  readonly responsableSearchError = signal(false);
   readonly displayedColumns = ['usuario', 'rol', 'estado', 'acciones'];
   readonly brigadaColumns = ['brigada', 'region', 'prl', 'responsable', 'estado', 'acciones'];
 
@@ -94,7 +98,9 @@ export class AdminUsers implements OnInit {
     nombre: ['', [Validators.required]],
     id_region: [0, [Validators.required, Validators.min(1)]],
     id_usuario_prl: [0],
+    prlSearch: [''],
     id_usuario_responsable: [0],
+    responsableSearch: [''],
     activo: [true],
   });
 
@@ -254,6 +260,7 @@ export class AdminUsers implements OnInit {
   }
 
   submitBrigada(): void {
+    this.validarBuscadoresAsignacion();
     if (this.brigadaForm.invalid) {
       this.brigadaForm.markAllAsTouched();
       return;
@@ -302,7 +309,9 @@ export class AdminUsers implements OnInit {
       nombre: '',
       id_region: 0,
       id_usuario_prl: 0,
+      prlSearch: '',
       id_usuario_responsable: 0,
+      responsableSearch: '',
       activo: true,
     });
   }
@@ -316,9 +325,104 @@ export class AdminUsers implements OnInit {
       nombre: brigada.nombre || '',
       id_region: brigada.id_region || 0,
       id_usuario_prl: asignacion?.id_usuario_prl || 0,
+      prlSearch: this.usuariosPrl().find((u) => u.id_usuario === asignacion?.id_usuario_prl)?.nombre || '',
       id_usuario_responsable: asignacion?.id_usuario_responsable || 0,
+      responsableSearch: this.usuariosResponsable().find((u) => u.id_usuario === asignacion?.id_usuario_responsable)?.nombre || '',
       activo: brigada.activo !== false,
     });
+  }
+
+  filteredPrl(): User[] {
+    const texto = this.normalizar(this.brigadaForm.controls.prlSearch.value);
+    return texto ? this.usuariosPrl().filter((u) => this.normalizar(u.nombre).includes(texto)) : this.usuariosPrl();
+  }
+
+  filteredResponsables(): User[] {
+    const texto = this.normalizar(this.brigadaForm.controls.responsableSearch.value);
+    return texto ? this.usuariosResponsable().filter((u) => this.normalizar(u.nombre).includes(texto)) : this.usuariosResponsable();
+  }
+
+  displayUsuario(usuario: User | string | null): string {
+    return typeof usuario === 'string' ? usuario : usuario?.nombre || '';
+  }
+
+  onPrlSearchInput(): void {
+    this.brigadaForm.controls.id_usuario_prl.setValue(0);
+    this.prlSearchError.set(false);
+  }
+
+  onResponsableSearchInput(): void {
+    this.brigadaForm.controls.id_usuario_responsable.setValue(0);
+    this.responsableSearchError.set(false);
+  }
+
+  onPrlSelected(event: MatAutocompleteSelectedEvent): void {
+    const selected = event.option.value as User | string;
+    if (typeof selected === 'string') {
+      this.brigadaForm.patchValue({ id_usuario_prl: 0, prlSearch: '' });
+      this.prlSearchError.set(false);
+      return;
+    }
+    this.selectPrl(selected);
+  }
+
+  onResponsableSelected(event: MatAutocompleteSelectedEvent): void {
+    const selected = event.option.value as User | string;
+    if (typeof selected === 'string') {
+      this.brigadaForm.patchValue({ id_usuario_responsable: 0, responsableSearch: '' });
+      this.responsableSearchError.set(false);
+      return;
+    }
+    this.selectResponsable(selected);
+  }
+
+  onPrlBlur(): void {
+    setTimeout(() => this.resolverPrl(), 0);
+  }
+
+  private resolverPrl(): void {
+    if (this.brigadaForm.controls.id_usuario_prl.value > 0) return;
+    const value = this.brigadaForm.controls.prlSearch.value;
+    const texto = this.normalizar(typeof value === 'string' ? value : (value as unknown as User)?.nombre);
+    if (!texto && !this.brigadaForm.controls.id_usuario_prl.value) { this.prlSearchError.set(false); return; }
+    const matches = this.usuariosPrl().filter((u) => this.normalizar(u.nombre) === texto);
+    if (matches.length === 1) { this.selectPrl(matches[0]); return; }
+    this.brigadaForm.patchValue({ prlSearch: '', id_usuario_prl: 0 });
+    this.prlSearchError.set(true);
+  }
+
+  onResponsableBlur(): void {
+    setTimeout(() => this.resolverResponsable(), 0);
+  }
+
+  private resolverResponsable(): void {
+    if (this.brigadaForm.controls.id_usuario_responsable.value > 0) return;
+    const value = this.brigadaForm.controls.responsableSearch.value;
+    const texto = this.normalizar(typeof value === 'string' ? value : (value as unknown as User)?.nombre);
+    if (!texto && !this.brigadaForm.controls.id_usuario_responsable.value) { this.responsableSearchError.set(false); return; }
+    const matches = this.usuariosResponsable().filter((u) => this.normalizar(u.nombre) === texto);
+    if (matches.length === 1) { this.selectResponsable(matches[0]); return; }
+    this.brigadaForm.patchValue({ responsableSearch: '', id_usuario_responsable: 0 });
+    this.responsableSearchError.set(true);
+  }
+
+  private selectPrl(user: User): void {
+    this.brigadaForm.patchValue({ id_usuario_prl: user.id_usuario, prlSearch: user.nombre || '' });
+    this.prlSearchError.set(false);
+  }
+
+  private selectResponsable(user: User): void {
+    this.brigadaForm.patchValue({ id_usuario_responsable: user.id_usuario, responsableSearch: user.nombre || '' });
+    this.responsableSearchError.set(false);
+  }
+
+  private normalizar(value: string | null | undefined): string {
+    return (value || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
+  }
+
+  private validarBuscadoresAsignacion(): void {
+    this.resolverPrl();
+    this.resolverResponsable();
   }
 
   deactivateBrigada(brigada: Brigada): void {

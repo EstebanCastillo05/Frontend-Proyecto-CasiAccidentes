@@ -75,6 +75,7 @@ export class CasoList implements OnInit {
   readonly filtroEstado = signal<number | null>(null);
   readonly filtroBrigadaId = signal<number | null>(null);
   readonly brigadaSearchTerm = signal('');
+  readonly brigadaSearchError = signal(false);
 
   // Título fijo para la pantalla de gestión general
   readonly tituloVista = computed(() => 'Gestión de Casos');
@@ -144,6 +145,7 @@ export class CasoList implements OnInit {
   }
 
   onBrigadaInput(): void {
+    this.brigadaSearchError.set(false);
     this.brigadaSearch$.next(this.brigadaSearchTerm());
     if (this.filtroBrigadaId() !== null) {
       this.filtroBrigadaId.set(null);
@@ -155,7 +157,32 @@ export class CasoList implements OnInit {
     const brigada = event.option.value as Brigada;
     this.filtroBrigadaId.set(brigada.id_brigada);
     this.brigadaSearchTerm.set(brigada.nombre || '');
+    this.brigadaSearchError.set(false);
     this.cargarCasos();
+  }
+
+  onBrigadaBlur(): void {
+    const value = this.brigadaSearchTerm().trim();
+    if (!value) { this.brigadaSearchError.set(false); return; }
+    if (this.filtroBrigadaId() !== null) return;
+    const normalize = (text: string | null | undefined) => (text || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
+    const expected = normalize(value);
+    setTimeout(() => this.casoService.searchBrigadas(value).subscribe({
+      next: (brigadas) => {
+        const matches = brigadas.filter((brigada) => normalize(brigada.nombre) === expected);
+        if (matches.length === 1) {
+          this.filtroBrigadaId.set(matches[0].id_brigada);
+          this.brigadaSearchTerm.set(matches[0].nombre || '');
+          this.brigadaSearchError.set(false);
+          this.cargarCasos();
+        } else {
+          this.brigadaSearchTerm.set('');
+          this.brigadaSearchError.set(true);
+          this.cargarCasos();
+        }
+      },
+      error: () => { this.brigadaSearchTerm.set(''); this.brigadaSearchError.set(true); this.cargarCasos(); },
+    }), 0);
   }
 
   limpiarFiltros(): void {
@@ -163,6 +190,7 @@ export class CasoList implements OnInit {
     this.filtroEstado.set(null);
     this.filtroBrigadaId.set(null);
     this.brigadaSearchTerm.set('');
+    this.brigadaSearchError.set(false);
     this.filteredBrigadas.set([]);
     this.cargarCasos();
   }

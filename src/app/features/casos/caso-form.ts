@@ -59,6 +59,8 @@ export class CasoForm implements OnInit {
   private readonly authService = inject(AuthService);
 
   readonly filteredBrigadas = signal<Brigada[]>([]);
+  readonly brigadaSearchError = signal(false);
+  readonly procesoSearchError = signal(false);
   readonly procesos = signal<Catalogo[]>([]);
   readonly regionSeleccionada = signal<string>('');
   readonly responsableAsignado = signal<string>('');
@@ -113,16 +115,7 @@ export class CasoForm implements OnInit {
     const user = this.authService.currentUser();
     return user?.id_rol === ROL_RESPONSABLE_PROCESO &&
       (estadoId === 6 || estado.includes('aceptado') || estado.includes('procede')) &&
-      !this.tieneAprobacionSymaDivulgacion();
-  });
-
-  readonly esResponsablePostDivulgacion = computed(() => {
-    const estadoId = this.casoActual()?.id_estado ?? 0;
-    const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
-    const user = this.authService.currentUser();
-    return user?.id_rol === ROL_RESPONSABLE_PROCESO &&
-      (estadoId === 6 || estado.includes('aceptado') || estado.includes('procede')) &&
-      this.tieneAprobacionSymaDivulgacion();
+      !this.esSymaSegundaRevision();
   });
 
   // Señales para el PRL
@@ -142,9 +135,12 @@ export class CasoForm implements OnInit {
   readonly esSymaFase = computed(() => {
     const estado = (this.casoActual()?.estados?.nombre || '').toLowerCase();
     const user = this.authService.currentUser();
-    return (user?.id_rol === ROL_GESTOR_SYMA || user?.id_rol === ROL_GESTION_CONTROL_SYMA) && 
-           (estado.includes('syma') || estado.includes('evidencias'));
+    const segundaRevision = this.esSymaSegundaRevision();
+    return (user?.id_rol === ROL_GESTOR_SYMA || user?.id_rol === ROL_GESTION_CONTROL_SYMA) &&
+      (segundaRevision || estado.includes('syma') || estado.includes('evidencias'));
   });
+
+  readonly esSymaSegundaRevision = computed(() => this.historialCaso().some((item: any) => item.es_segunda_revision_syma === true));
 
   readonly esSymaRevisionEvidencias = computed(() => {
     const estadoId = this.casoActual()?.id_estado ?? 0;
@@ -244,10 +240,15 @@ export class CasoForm implements OnInit {
 
   onBrigadaSelected(event: MatAutocompleteSelectedEvent): void {
     const brigada = event.option.value as Brigada;
+    this.seleccionarBrigada(brigada);
+  }
+
+  private seleccionarBrigada(brigada: Brigada): void {
     this.form.patchValue({
       id_brigada: brigada.id_brigada,
       brigadaSearch: brigada.nombre || '',
     });
+    this.brigadaSearchError.set(false);
     this.regionSeleccionada.set(brigada.regiones?.nombre || 'Sin región asignada');
 
     this.responsableAsignado.set(this.obtenerResponsableBrigada(brigada));
@@ -262,24 +263,73 @@ export class CasoForm implements OnInit {
     this.form.controls.id_brigada.setValue(0);
     this.regionSeleccionada.set('');
     this.responsableAsignado.set('');
+    this.brigadaSearchError.set(false);
+  }
+
+  onBrigadaBlur(): void {
+    const value = this.form.controls.brigadaSearch.value.trim();
+    if (!value) { this.brigadaSearchError.set(false); return; }
+    if (this.form.controls.id_brigada.value > 0) return;
+    const texto = this.normalizar(value);
+    setTimeout(() => this.casoService.searchBrigadas(value).subscribe({
+      next: (brigadas) => {
+        const matches = brigadas.filter((item) => this.normalizar(item.nombre) === texto);
+        if (matches.length === 1) this.seleccionarBrigada(matches[0]);
+        else {
+          this.form.patchValue({ brigadaSearch: '', id_brigada: 0 });
+          this.regionSeleccionada.set('');
+          this.brigadaSearchError.set(true);
+        }
+      },
+      error: () => {
+        this.form.patchValue({ brigadaSearch: '', id_brigada: 0 });
+        this.regionSeleccionada.set('');
+        this.brigadaSearchError.set(true);
+      },
+    }), 0);
   }
 
   onProcesoSelected(event: MatAutocompleteSelectedEvent): void {
     const proceso = event.option.value as Catalogo;
+    this.seleccionarProceso(proceso);
+  }
+
+  private seleccionarProceso(proceso: Catalogo): void {
     this.form.patchValue({
       id_proceso: proceso.id_proceso,
       procesoSearch: proceso.nombre || '',
     });
+    this.procesoSearchError.set(false);
   }
 
   onProcesoSearchChange(): void {
     this.form.controls.id_proceso.setValue(0);
+    this.procesoSearchError.set(false);
+  }
+
+  onProcesoBlur(): void {
+    const value = this.form.controls.procesoSearch.value.trim();
+    if (!value) { this.procesoSearchError.set(false); return; }
+    if (this.form.controls.id_proceso.value > 0) return;
+    const texto = this.normalizar(value);
+    setTimeout(() => {
+      const matches = this.procesos().filter((item) => this.normalizar(item.nombre) === texto);
+      if (matches.length === 1) this.seleccionarProceso(matches[0]);
+      else {
+        this.form.patchValue({ procesoSearch: '', id_proceso: 0 });
+        this.procesoSearchError.set(true);
+      }
+    }, 0);
+  }
+
+  private normalizar(value: string | null | undefined): string {
+    return (value || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
   }
 
   filteredProcesos(): Catalogo[] {
-    const texto = (this.form.controls.procesoSearch.value || '').toLowerCase();
+    const texto = this.normalizar(this.form.controls.procesoSearch.value);
     if (!texto) return this.procesos();
-    return this.procesos().filter((p) => (p.nombre || '').toLowerCase().includes(texto));
+    return this.procesos().filter((p) => this.normalizar(p.nombre).includes(texto));
   }
 
   marcarProcedencia(procede: boolean): void {
@@ -385,11 +435,11 @@ export class CasoForm implements OnInit {
     });
   }
 
-  ejecutarSyma(aprobado: boolean): void {
+  ejecutarSyma(accion: 'APROBAR' | 'PROCEDE_SIN_ACCIONES' | 'SOLICITAR_ACCIONES' | 'RECHAZAR'): void {
     const id = this.casoId();
     if (!id) return;
 
-    if (!aprobado) {
+    if (accion !== 'APROBAR') {
       const dialogRef = this.dialog.open(MotivoDialogComponent, {
         width: '450px',
         data: {
@@ -399,21 +449,26 @@ export class CasoForm implements OnInit {
       });
       dialogRef.afterClosed().subscribe((motivo) => {
         if (!motivo) return;
-        this.enviarSymaBackend(id, false, motivo);
+        this.enviarSymaBackend(id, accion, motivo);
       });
     } else {
-      this.enviarSymaBackend(id, true);
+      this.enviarSymaBackend(id, accion);
     }
   }
 
-  private enviarSymaBackend(id: number, aprobado: boolean, motivo?: string): void {
+  private enviarSymaBackend(id: number, accion: 'APROBAR' | 'PROCEDE_SIN_ACCIONES' | 'SOLICITAR_ACCIONES' | 'RECHAZAR', motivo?: string): void {
     this.isSaving.set(true);
     this.errorMessage.set('');
 
-    this.casoService.gestionarSyma(id, aprobado, motivo).subscribe({
+    this.casoService.gestionarSyma(id, accion, motivo).subscribe({
       next: () => {
         this.isSaving.set(false);
-        this.router.navigate(['/casos'], { state: { feedback: 'Gestión SYMA completada correctamente' } });
+        const feedback = accion === 'PROCEDE_SIN_ACCIONES'
+          ? 'Caso cerrado sin acciones por SYMA'
+          : accion === 'SOLICITAR_ACCIONES'
+            ? 'Acciones correctivas solicitadas al PRL por SYMA'
+            : accion === 'RECHAZAR' ? 'Caso rechazado por SYMA' : 'Gestión SYMA completada correctamente';
+        this.router.navigate(['/casos'], { state: { feedback } });
       },
       error: (err) => {
         this.isSaving.set(false);
@@ -509,7 +564,7 @@ export class CasoForm implements OnInit {
         prlEnvioFormato = true;
       }
 
-      return prlEnvioFormato && accion.includes('syma_aprobar_divulgacion');
+      return prlEnvioFormato && (accion.includes('syma_aprobar_divulgacion') || accion.includes('syma_procede_sin_acciones') || accion.includes('syma_solicita_acciones') || accion.includes('syma_rechazar'));
     });
   }
 }

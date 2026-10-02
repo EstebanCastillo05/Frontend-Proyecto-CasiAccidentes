@@ -10,6 +10,11 @@ export interface ApiListResponse<T> {
 }
 
 export interface HistorialEstadoItem {
+  id_estado_origen?: number | null;
+  id_estado_destino?: number | null;
+  accion?: string | null;
+  estado_origen?: string | null;
+  estado_destino?: string | null;
   fecha: string | Date;
   estado: string;
   usuario?: string;
