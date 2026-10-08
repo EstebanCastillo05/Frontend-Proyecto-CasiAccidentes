@@ -140,7 +140,10 @@ export class CasoForm implements OnInit {
       (segundaRevision || estado.includes('syma') || estado.includes('evidencias'));
   });
 
-  readonly esSymaSegundaRevision = computed(() => this.historialCaso().some((item: any) => item.es_segunda_revision_syma === true));
+  readonly esSymaSegundaRevision = computed(() =>
+    !this.tieneAccionesCorrectivas() &&
+    this.historialCaso().some((item: any) => item.es_segunda_revision_syma === true)
+  );
 
   readonly esSymaRevisionEvidencias = computed(() => {
     const estadoId = this.casoActual()?.id_estado ?? 0;
@@ -175,7 +178,15 @@ export class CasoForm implements OnInit {
         switchMap((texto) => this.casoService.searchBrigadas(texto || ''))
       )
       .subscribe({
-        next: (brigadas) => this.filteredBrigadas.set(brigadas.filter((b) => b.activo !== false)),
+        next: (brigadas) => {
+          const activas = brigadas.filter((b) => b.activo !== false);
+          this.filteredBrigadas.set(activas);
+          if (this.form.controls.id_brigada.value > 0) return;
+
+          const texto = this.normalizar(this.form.controls.brigadaSearch.value);
+          const matches = activas.filter((brigada) => this.normalizar(brigada.nombre) === texto);
+          if (texto && matches.length === 1) this.seleccionarBrigada(matches[0]);
+        },
         error: () => this.errorMessage.set('No se pudieron buscar brigadas'),
       });
 
@@ -271,6 +282,11 @@ export class CasoForm implements OnInit {
     if (!value) { this.brigadaSearchError.set(false); return; }
     if (this.form.controls.id_brigada.value > 0) return;
     const texto = this.normalizar(value);
+    const matchesLocales = this.filteredBrigadas().filter((item) => this.normalizar(item.nombre) === texto);
+    if (matchesLocales.length === 1) {
+      this.seleccionarBrigada(matchesLocales[0]);
+      return;
+    }
     setTimeout(() => this.casoService.searchBrigadas(value).subscribe({
       next: (brigadas) => {
         const matches = brigadas.filter((item) => this.normalizar(item.nombre) === texto);
@@ -305,6 +321,10 @@ export class CasoForm implements OnInit {
   onProcesoSearchChange(): void {
     this.form.controls.id_proceso.setValue(0);
     this.procesoSearchError.set(false);
+    const matches = this.filteredProcesos().filter(
+      (proceso) => this.normalizar(proceso.nombre) === this.normalizar(this.form.controls.procesoSearch.value)
+    );
+    if (matches.length === 1) this.seleccionarProceso(matches[0]);
   }
 
   onProcesoBlur(): void {
@@ -393,21 +413,17 @@ export class CasoForm implements OnInit {
     });
   }
 
-  enviarResponsableAccion(accion: 'ENVIAR_CIERRE' | 'ENVIAR_ACCIONES' | 'CERRAR_SIN_ACCIONES'): void {
+  enviarResponsableAccion(): void {
     const id = this.casoId();
     if (!id) return;
 
     this.isSaving.set(true);
     this.errorMessage.set('');
 
-    this.casoService.gestionarResponsable(id, accion).subscribe({
+    this.casoService.gestionarResponsable(id, 'ENVIAR_CIERRE').subscribe({
       next: () => {
         this.isSaving.set(false);
-        const feedback =
-          accion === 'CERRAR_SIN_ACCIONES'
-            ? 'Caso cerrado sin acciones correctamente'
-            : 'Caso derivado correctamente por el responsable';
-        this.router.navigate(['/casos'], { state: { feedback } });
+        this.router.navigate(['/casos'], { state: { feedback: 'Evidencias enviadas a SYMA correctamente' } });
       },
       error: (err) => {
         this.isSaving.set(false);
@@ -440,11 +456,16 @@ export class CasoForm implements OnInit {
     if (!id) return;
 
     if (accion !== 'APROBAR') {
+      const subtitulos = {
+        PROCEDE_SIN_ACCIONES: 'Ingresa el comentario con el que SYMA cerrará el caso sin acciones:',
+        SOLICITAR_ACCIONES: 'Ingresa el comentario para solicitar acciones correctivas al PRL:',
+        RECHAZAR: 'Ingresa el motivo de rechazo o devolución por parte de SYMA:',
+      } as const;
       const dialogRef = this.dialog.open(MotivoDialogComponent, {
         width: '450px',
         data: {
           titulo: 'Gestión SYMA',
-          subtitulo: 'Ingresa el motivo de rechazo o devolución por parte de SYMA:',
+          subtitulo: subtitulos[accion],
         },
       });
       dialogRef.afterClosed().subscribe((motivo) => {

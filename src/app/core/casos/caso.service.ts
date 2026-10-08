@@ -132,14 +132,14 @@ export class CasoService {
 
   gestionarResponsable(
     id: number, 
-    accion: 'AVANZAR' | 'RECHAZAR' | 'ENVIAR_CIERRE' | 'ENVIAR_ACCIONES' | 'CERRAR_SIN_ACCIONES', 
+    accion: 'AVANZAR' | 'RECHAZAR' | 'ENVIAR_CIERRE',
     motivo?: string
   ): Observable<any> {
     return this.http.patch(`${API_BASE_URL}/casos/${id}/responsable`, { accion, motivo });
   }
 
   gestionarSyma(id: number, accion: 'APROBAR' | 'PROCEDE_SIN_ACCIONES' | 'SOLICITAR_ACCIONES' | 'RECHAZAR', motivo?: string): Observable<any> {
-    return this.http.patch(`${API_BASE_URL}/casos/${id}/syma`, { accion, aprobado: accion === 'APROBAR', motivo });
+    return this.http.patch(`${API_BASE_URL}/casos/${id}/syma`, { accion, motivo });
   }
 
   gestionarPrl(id: number, motivo?: string): Observable<any> {

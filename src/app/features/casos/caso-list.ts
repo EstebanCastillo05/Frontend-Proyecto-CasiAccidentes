@@ -103,7 +103,20 @@ export class CasoList implements OnInit {
         switchMap((texto) => this.casoService.searchBrigadas(texto))
       )
       .subscribe({
-        next: (brigadas) => this.filteredBrigadas.set(brigadas.filter((b) => b.activo !== false)),
+        next: (brigadas) => {
+          const activas = brigadas.filter((b) => b.activo !== false);
+          this.filteredBrigadas.set(activas);
+          if (this.filtroBrigadaId() !== null) return;
+
+          const texto = this.normalizar(this.brigadaSearchTerm());
+          const matches = activas.filter((brigada) => this.normalizar(brigada.nombre) === texto);
+          if (texto && matches.length === 1) {
+            this.filtroBrigadaId.set(matches[0].id_brigada);
+            this.brigadaSearchTerm.set(matches[0].nombre || '');
+            this.brigadaSearchError.set(false);
+            this.cargarCasos();
+          }
+        },
         error: () => {},
       });
 
@@ -165,11 +178,18 @@ export class CasoList implements OnInit {
     const value = this.brigadaSearchTerm().trim();
     if (!value) { this.brigadaSearchError.set(false); return; }
     if (this.filtroBrigadaId() !== null) return;
-    const normalize = (text: string | null | undefined) => (text || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
-    const expected = normalize(value);
+    const expected = this.normalizar(value);
+    const matchesLocales = this.filteredBrigadas().filter((brigada) => this.normalizar(brigada.nombre) === expected);
+    if (matchesLocales.length === 1) {
+      this.filtroBrigadaId.set(matchesLocales[0].id_brigada);
+      this.brigadaSearchTerm.set(matchesLocales[0].nombre || '');
+      this.brigadaSearchError.set(false);
+      this.cargarCasos();
+      return;
+    }
     setTimeout(() => this.casoService.searchBrigadas(value).subscribe({
       next: (brigadas) => {
-        const matches = brigadas.filter((brigada) => normalize(brigada.nombre) === expected);
+        const matches = brigadas.filter((brigada) => this.normalizar(brigada.nombre) === expected);
         if (matches.length === 1) {
           this.filtroBrigadaId.set(matches[0].id_brigada);
           this.brigadaSearchTerm.set(matches[0].nombre || '');
@@ -183,6 +203,10 @@ export class CasoList implements OnInit {
       },
       error: () => { this.brigadaSearchTerm.set(''); this.brigadaSearchError.set(true); this.cargarCasos(); },
     }), 0);
+  }
+
+  private normalizar(value: string | null | undefined): string {
+    return (value || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
   }
 
   limpiarFiltros(): void {

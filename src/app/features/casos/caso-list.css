@@ -40,6 +40,10 @@
   flex: 1;
 }
 
+.filtro-error-hint {
+  color: #b3261e;
+}
+
 .tabla-card {
   padding: 0;
   overflow: hidden;

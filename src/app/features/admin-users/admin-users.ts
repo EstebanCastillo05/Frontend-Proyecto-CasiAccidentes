@@ -305,6 +305,8 @@ export class AdminUsers implements OnInit {
 
   resetBrigadaForm(): void {
     this.selectedBrigada.set(null);
+    this.prlSearchError.set(false);
+    this.responsableSearchError.set(false);
     this.brigadaForm.reset({
       nombre: '',
       id_region: 0,
@@ -320,6 +322,8 @@ export class AdminUsers implements OnInit {
     this.selectedBrigada.set(brigada);
     this.brigadaFeedback.set('');
     this.brigadaErrorMessage.set('');
+    this.prlSearchError.set(false);
+    this.responsableSearchError.set(false);
     const asignacion = brigada.brigada_asignacion?.[0];
     this.brigadaForm.reset({
       nombre: brigada.nombre || '',
@@ -348,11 +352,13 @@ export class AdminUsers implements OnInit {
 
   onPrlSearchInput(): void {
     this.brigadaForm.controls.id_usuario_prl.setValue(0);
+    this.brigadaForm.controls.prlSearch.setErrors(null);
     this.prlSearchError.set(false);
   }
 
   onResponsableSearchInput(): void {
     this.brigadaForm.controls.id_usuario_responsable.setValue(0);
+    this.brigadaForm.controls.responsableSearch.setErrors(null);
     this.responsableSearchError.set(false);
   }
 
@@ -384,10 +390,16 @@ export class AdminUsers implements OnInit {
     if (this.brigadaForm.controls.id_usuario_prl.value > 0) return;
     const value = this.brigadaForm.controls.prlSearch.value;
     const texto = this.normalizar(typeof value === 'string' ? value : (value as unknown as User)?.nombre);
-    if (!texto && !this.brigadaForm.controls.id_usuario_prl.value) { this.prlSearchError.set(false); return; }
+    if (!texto && !this.brigadaForm.controls.id_usuario_prl.value) {
+      this.brigadaForm.controls.prlSearch.setErrors(null);
+      this.prlSearchError.set(false);
+      return;
+    }
     const matches = this.usuariosPrl().filter((u) => this.normalizar(u.nombre) === texto);
     if (matches.length === 1) { this.selectPrl(matches[0]); return; }
     this.brigadaForm.patchValue({ prlSearch: '', id_usuario_prl: 0 });
+    this.brigadaForm.controls.prlSearch.setErrors({ opcionInvalida: true });
+    this.brigadaForm.controls.prlSearch.markAsTouched();
     this.prlSearchError.set(true);
   }
 
@@ -399,20 +411,28 @@ export class AdminUsers implements OnInit {
     if (this.brigadaForm.controls.id_usuario_responsable.value > 0) return;
     const value = this.brigadaForm.controls.responsableSearch.value;
     const texto = this.normalizar(typeof value === 'string' ? value : (value as unknown as User)?.nombre);
-    if (!texto && !this.brigadaForm.controls.id_usuario_responsable.value) { this.responsableSearchError.set(false); return; }
+    if (!texto && !this.brigadaForm.controls.id_usuario_responsable.value) {
+      this.brigadaForm.controls.responsableSearch.setErrors(null);
+      this.responsableSearchError.set(false);
+      return;
+    }
     const matches = this.usuariosResponsable().filter((u) => this.normalizar(u.nombre) === texto);
     if (matches.length === 1) { this.selectResponsable(matches[0]); return; }
     this.brigadaForm.patchValue({ responsableSearch: '', id_usuario_responsable: 0 });
+    this.brigadaForm.controls.responsableSearch.setErrors({ opcionInvalida: true });
+    this.brigadaForm.controls.responsableSearch.markAsTouched();
     this.responsableSearchError.set(true);
   }
 
   private selectPrl(user: User): void {
     this.brigadaForm.patchValue({ id_usuario_prl: user.id_usuario, prlSearch: user.nombre || '' });
+    this.brigadaForm.controls.prlSearch.setErrors(null);
     this.prlSearchError.set(false);
   }
 
   private selectResponsable(user: User): void {
     this.brigadaForm.patchValue({ id_usuario_responsable: user.id_usuario, responsableSearch: user.nombre || '' });
+    this.brigadaForm.controls.responsableSearch.setErrors(null);
     this.responsableSearchError.set(false);
   }
 

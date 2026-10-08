@@ -31,7 +31,7 @@
           [matAutocomplete]="autoBrigadaFiltro"
           placeholder="Buscar brigada..."
         />
-        @if (brigadaSearchError()) { <mat-error>Selecciona una brigada de la lista de sugerencias</mat-error> }
+        @if (brigadaSearchError()) { <mat-hint class="filtro-error-hint">Selecciona una brigada de la lista de sugerencias</mat-hint> }
         <mat-autocomplete #autoBrigadaFiltro="matAutocomplete" [displayWith]="displayBrigada" (optionSelected)="onBrigadaSelected($event)">
           @for (brigada of filteredBrigadas(); track brigada.id_brigada) {
             <mat-option [value]="brigada">{{ brigada.nombre }}</mat-option>
